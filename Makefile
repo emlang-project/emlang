@@ -1,7 +1,7 @@
 # emlang Makefile
 
 BINARY_NAME=emlang
-VERSION=0.0.0
+VERSION=1.0.0
 BUILD_DIR=bin
 GO=go
 

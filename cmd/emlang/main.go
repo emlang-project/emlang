@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const version = "0.0.0"
+const version = "1.0.0"
 const specVersion = "1.0.0"
 
 func main() {
