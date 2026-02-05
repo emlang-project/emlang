@@ -1,0 +1,47 @@
+# Binaries
+emlang
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Build output
+bin/
+dist/
+
+# GoLand / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Claude Code
+.claude/
+
+# OS files
+.DS_Store
+.DS_Store?
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Debug
+debug
+__debug_bin*

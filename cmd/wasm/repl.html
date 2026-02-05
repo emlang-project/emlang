@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>emlang REPL</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #343a40;
+  color: #e9ecef;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: #212529;
+  border-bottom: 1px solid #495057;
+  flex-shrink: 0;
+}
+
+header img {
+  height: 1.4rem;
+  width: auto;
+}
+
+header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+header .actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+header button {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #495057;
+  border-radius: 4px;
+  background: #495057;
+  color: #e9ecef;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+header button:hover { background: #868e96; }
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-pane {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #495057;
+}
+
+.preview-pane {
+  flex: 1;
+  overflow: auto;
+  background: #fff;
+}
+
+.editor-pane label {
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: #adb5bd;
+  background: #212529;
+  border-bottom: 1px solid #495057;
+  flex-shrink: 0;
+}
+
+textarea {
+  flex: 1;
+  padding: 1rem;
+  background: #343a40;
+  color: #f1f3f5;
+  border: none;
+  resize: none;
+  font-family: monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  tab-size: 2;
+  outline: none;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  background: #f1f3f5;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  gap: 0.3rem;
+}
+
+.preview-header button {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  background: #e9ecef;
+  color: #495057;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.preview-header button:hover { background: #dee2e6; }
+
+.preview-header span {
+  font-size: 0.7rem;
+  color: #868e96;
+  min-width: 3em;
+  text-align: center;
+}
+
+.preview-pane iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.console {
+  flex-shrink: 0;
+  height: 150px;
+  background: #212529;
+  border-top: 1px solid #495057;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  background: #212529;
+  border-bottom: 1px solid #495057;
+  flex-shrink: 0;
+}
+
+.console-header span {
+  font-size: 0.75rem;
+  color: #adb5bd;
+}
+
+.console-header .badge {
+  margin-left: 0.5rem;
+  padding: 0 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.console-header .badge-error {
+  background: #ff6b6b;
+  color: #212529;
+}
+
+.console-header .badge-warning {
+  background: #f59f00;
+  color: #000000;
+}
+
+.console-header .badge-ok {
+  background: #51cf66;
+  color: #212529;
+}
+
+.console-header button {
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #495057;
+  border-radius: 3px;
+  background: #495057;
+  color: #adb5bd;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.console-header button:hover { background: #868e96; }
+
+.console-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.console-body:empty::after {
+  content: "No issues";
+  color: #868e96;
+}
+
+.msg-error { color: #ff6b6b; }
+.msg-warning { color: #f59f00; }
+.msg-info { color: #339af0; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://emlang-project.github.io/logo.svg" alt="emlang">
+  <h1>Emlang REPL</h1>
+  <div class="actions">
+    <button id="btn-fmt" title="Format source (Ctrl+Shift+F)">Format</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="editor-pane">
+    <label>YAML source</label>
+    <textarea id="editor" spellcheck="false" autocomplete="off"></textarea>
+  </div>
+  <div class="preview-pane">
+    <div class="preview-header">
+      <button id="btn-zoom-out" title="Zoom out">-</button>
+      <span id="zoom-level">100%</span>
+      <button id="btn-zoom-in" title="Zoom in">+</button>
+      <button id="btn-zoom-reset" title="Reset zoom">Reset</button>
+    </div>
+    <iframe id="preview" sandbox="allow-same-origin"></iframe>
+  </div>
+</div>
+
+<div class="console">
+  <div class="console-header">
+    <span>Console</span>
+    <span id="badge"></span>
+    <button id="btn-clear">Clear</button>
+  </div>
+  <div class="console-body" id="console-body"></div>
+</div>
+
+<script src="wasm_exec.js"></script>
+<script>
+var editor = document.getElementById("editor");
+var preview = document.getElementById("preview");
+var consoleBody = document.getElementById("console-body");
+var badge = document.getElementById("badge");
+var btnFmt = document.getElementById("btn-fmt");
+var btnClear = document.getElementById("btn-clear");
+var zoomLevel = document.getElementById("zoom-level");
+var btnZoomIn = document.getElementById("btn-zoom-in");
+var btnZoomOut = document.getElementById("btn-zoom-out");
+var btnZoomReset = document.getElementById("btn-zoom-reset");
+var debounceTimer = null;
+var zoom = 100;
+var ready = false;
+
+function clearConsole() {
+  consoleBody.innerHTML = "";
+  badge.textContent = "";
+  badge.className = "badge";
+}
+
+function appendMsg(cls, text) {
+  var div = document.createElement("div");
+  div.className = cls;
+  div.textContent = text;
+  consoleBody.appendChild(div);
+  consoleBody.scrollTop = consoleBody.scrollHeight;
+}
+
+function updateBadge(errors, warnings) {
+  if (errors > 0) {
+    badge.textContent = errors + " error" + (errors > 1 ? "s" : "");
+    if (warnings > 0) badge.textContent += ", " + warnings + " warning" + (warnings > 1 ? "s" : "");
+    badge.className = "badge badge-error";
+  } else if (warnings > 0) {
+    badge.textContent = warnings + " warning" + (warnings > 1 ? "s" : "");
+    badge.className = "badge badge-warning";
+  } else {
+    badge.textContent = "OK";
+    badge.className = "badge badge-ok";
+  }
+}
+
+function render() {
+  if (!ready) return;
+  var src = editor.value;
+  if (!src.trim()) {
+    preview.srcdoc = "";
+    clearConsole();
+    return;
+  }
+
+  var result = emlangRender(src);
+  clearConsole();
+
+  if (result.error) {
+    appendMsg("msg-error", "Parse error: " + result.error);
+    updateBadge(1, 0);
+    return;
+  }
+
+  preview.srcdoc = result.html;
+
+  var errors = 0;
+  var warnings = 0;
+  var lint = result.lint;
+  if (lint && lint.length > 0) {
+    for (var i = 0; i < lint.length; i++) {
+      var issue = lint[i];
+      var prefix = issue.line > 0 ? issue.line + ":" + issue.column + ": " : "";
+      if (issue.severity === "error") {
+        appendMsg("msg-error", prefix + issue.message + " [" + issue.rule + "]");
+        errors++;
+      } else {
+        appendMsg("msg-warning", prefix + issue.message + " [" + issue.rule + "]");
+        warnings++;
+      }
+    }
+  }
+  updateBadge(errors, warnings);
+}
+
+function scheduleRender() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(render, 300);
+}
+
+function formatSource() {
+  if (!ready) return;
+  var result = emlangFormat(editor.value);
+
+  if (result.error) {
+    clearConsole();
+    appendMsg("msg-error", "Format error: " + result.error);
+    updateBadge(1, 0);
+  } else {
+    editor.value = result.yaml;
+    render();
+  }
+}
+
+editor.addEventListener("input", scheduleRender);
+
+editor.addEventListener("keydown", function(e) {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    var start = this.selectionStart;
+    var end = this.selectionEnd;
+    this.value = this.value.substring(0, start) + "  " + this.value.substring(end);
+    this.selectionStart = this.selectionEnd = start + 2;
+    scheduleRender();
+  }
+  if (e.key === "F" && e.ctrlKey && e.shiftKey) {
+    e.preventDefault();
+    formatSource();
+  }
+});
+
+btnFmt.addEventListener("click", formatSource);
+btnClear.addEventListener("click", clearConsole);
+
+function applyZoom() {
+  zoomLevel.textContent = zoom + "%";
+  try {
+    var doc = preview.contentDocument;
+    if (doc && doc.body) {
+      doc.body.style.transformOrigin = "0 0";
+      doc.body.style.transform = "scale(" + (zoom / 100) + ")";
+      doc.body.style.width = (10000 / zoom) + "%";
+    }
+  } catch(e) {}
+}
+
+function setZoom(v) {
+  zoom = Math.max(25, Math.min(200, v));
+  applyZoom();
+}
+
+btnZoomIn.addEventListener("click", function() { setZoom(zoom + 10); });
+btnZoomOut.addEventListener("click", function() { setZoom(zoom - 10); });
+btnZoomReset.addEventListener("click", function() { setZoom(100); });
+preview.addEventListener("load", applyZoom);
+
+// Load WASM
+appendMsg("msg-info", "Loading WASM...");
+
+window.onEmlangReady = function() {
+  ready = true;
+  clearConsole();
+  var params = new URLSearchParams(window.location.search);
+  var s = params.get("s");
+  editor.value = s ? s : "slices:\n";
+  render();
+};
+
+var go = new Go();
+WebAssembly.instantiateStreaming(fetch("emlang.wasm"), go.importObject).then(function(result) {
+  go.run(result.instance);
+});
+</script>
+</body>
+</html>
