@@ -270,8 +270,8 @@ func printElement(indent string, elem *ast.Element) {
 
 	if len(elem.Props) > 0 {
 		fmt.Printf("%s  props:\n", indent)
-		for k, v := range elem.Props {
-			fmt.Printf("%s    %s: %v\n", indent, k, v)
+		for _, p := range elem.Props {
+			fmt.Printf("%s    %s: %v\n", indent, p.Key, p.Value)
 		}
 	}
 }

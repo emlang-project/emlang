@@ -127,18 +127,10 @@ func (w *writer) writeElement(level int, elem *ast.Element) {
 	w.writeProps(level+2, elem.Props)
 }
 
-func (w *writer) writeProps(level int, props map[string]interface{}) {
-	// Sort keys for deterministic output
-	keys := make([]string, 0, len(props))
-	for k := range props {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		v := props[k]
+func (w *writer) writeProps(level int, props []ast.PropEntry) {
+	for _, p := range props {
 		w.indent(level)
-		w.raw(fmt.Sprintf("%s: %s\n", k, formatValue(v)))
+		w.raw(fmt.Sprintf("%s: %s\n", p.Key, formatValue(p.Value)))
 	}
 }
 

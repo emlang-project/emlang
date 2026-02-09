@@ -558,22 +558,14 @@ func writeTestElement(w *writer, elem *ast.Element, level int) {
 	w.line(level, "</div>")
 }
 
-func writeProps(w *writer, props map[string]interface{}, level int) {
+func writeProps(w *writer, props []ast.PropEntry, level int) {
 	if len(props) == 0 {
 		return
 	}
-	// Sort keys for deterministic output
-	keys := make([]string, 0, len(props))
-	for k := range props {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
 	w.line(level, `<dl class="emlang-props">`)
-	for _, k := range keys {
-		v := props[k]
-		w.line(level+1, fmt.Sprintf("<dt>%s</dt>", html.EscapeString(k)))
-		w.line(level+1, fmt.Sprintf("<dd>%s</dd>", html.EscapeString(fmt.Sprintf("%v", v))))
+	for _, p := range props {
+		w.line(level+1, fmt.Sprintf("<dt>%s</dt>", html.EscapeString(p.Key)))
+		w.line(level+1, fmt.Sprintf("<dd>%s</dd>", html.EscapeString(fmt.Sprintf("%v", p.Value))))
 	}
 	w.line(level, "</dl>")
 }

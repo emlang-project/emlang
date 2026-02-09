@@ -62,14 +62,20 @@ func (t ElementType) String() string {
 	}
 }
 
+// PropEntry is a key-value pair that preserves insertion order.
+type PropEntry struct {
+	Key   string
+	Value interface{}
+}
+
 // Element represents an element in a slice or test.
 type Element struct {
 	Type     ElementType
-	Name     string                 // element name (may include Swimlane/Name)
-	Swimlane string                 // extracted swimlane if present
-	Props    map[string]interface{} // free-form properties
-	Line     int                    // source line (1-based)
-	Column   int                    // source column (1-based)
+	Name     string      // element name (may include Swimlane/Name)
+	Swimlane string      // extracted swimlane if present
+	Props    []PropEntry // free-form properties (ordered)
+	Line     int         // source line (1-based)
+	Column   int         // source column (1-based)
 }
 
 // ParseSwimlane extracts swimlane from element name if present.

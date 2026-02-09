@@ -385,11 +385,20 @@ func parseElement(node *yaml.Node) (*ast.Element, error) {
 	return elem, nil
 }
 
-// parseProps parses the props field.
-func parseProps(node *yaml.Node) (map[string]interface{}, error) {
-	var props map[string]interface{}
-	if err := node.Decode(&props); err != nil {
-		return nil, err
+// parseProps parses the props field, preserving source order.
+func parseProps(node *yaml.Node) ([]ast.PropEntry, error) {
+	if node.Kind != yaml.MappingNode {
+		return nil, fmt.Errorf("props must be a mapping at line %d", node.Line)
+	}
+	props := make([]ast.PropEntry, 0, len(node.Content)/2)
+	for i := 0; i < len(node.Content); i += 2 {
+		keyNode := node.Content[i]
+		valNode := node.Content[i+1]
+		var val interface{}
+		if err := valNode.Decode(&val); err != nil {
+			return nil, err
+		}
+		props = append(props, ast.PropEntry{Key: keyNode.Value, Value: val})
 	}
 	return props, nil
 }

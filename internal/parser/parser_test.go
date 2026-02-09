@@ -102,11 +102,11 @@ slices:
 	}
 
 	cmd := slice.Elements[0]
-	if cmd.Props == nil {
+	if len(cmd.Props) == 0 {
 		t.Fatal("expected props on command")
 	}
-	if cmd.Props["customer_id"] != "123" {
-		t.Errorf("expected customer_id '123', got %v", cmd.Props["customer_id"])
+	if cmd.Props[0].Key != "customer_id" || cmd.Props[0].Value != "123" {
+		t.Errorf("expected customer_id '123', got %v: %v", cmd.Props[0].Key, cmd.Props[0].Value)
 	}
 }
 
