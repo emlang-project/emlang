@@ -325,6 +325,9 @@ func parseElementList(node *yaml.Node) ([]*ast.Element, error) {
 
 // parseElement parses a single element.
 func parseElement(node *yaml.Node) (*ast.Element, error) {
+	if node.Kind == yaml.AliasNode {
+		node = node.Alias
+	}
 	if node.Kind != yaml.MappingNode {
 		return nil, fmt.Errorf("element must be a mapping at line %d", node.Line)
 	}

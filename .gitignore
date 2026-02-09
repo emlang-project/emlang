@@ -22,6 +22,7 @@ vendor/
 # Build output
 bin/
 dist/
+tmp/
 
 # GoLand / JetBrains
 .idea/
