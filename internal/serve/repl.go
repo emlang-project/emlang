@@ -2,7 +2,6 @@ package serve
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,10 +15,8 @@ import (
 	"github.com/emlang-project/emlang/internal/formatter"
 	"github.com/emlang-project/emlang/internal/linter"
 	"github.com/emlang-project/emlang/internal/parser"
+	"github.com/emlang-project/emlang/internal/repl"
 )
-
-//go:embed repl.html
-var replPage string
 
 type lintIssueJSON struct {
 	Rule     string `json:"rule"`
@@ -64,7 +61,7 @@ func StartRepl(filePath string, addr string, port int, cfg *config.Config) error
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		io.WriteString(w, replPage)
+		io.WriteString(w, repl.Page)
 	})
 
 	mux.HandleFunc("/initial", func(w http.ResponseWriter, r *http.Request) {

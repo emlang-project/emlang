@@ -35,7 +35,7 @@ build-wasm:
 	else \
 		echo "warning: wasm_exec.js not found in GOROOT"; \
 	fi
-	cp cmd/wasm/repl.html $(BUILD_DIR)/repl.html
+	cp internal/repl/repl.html $(BUILD_DIR)/repl.html
 	@ls -lh $(BUILD_DIR)/emlang.wasm
 	@if command -v gzip >/dev/null 2>&1; then \
 		gzip -k -f $(BUILD_DIR)/emlang.wasm; \
