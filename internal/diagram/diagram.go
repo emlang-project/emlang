@@ -183,7 +183,8 @@ func elementIndex(slice *ast.Slice, elem *ast.Element) int {
 // cssVariables contains the CSS custom properties for .emlang-documents.
 // Overrides from config are injected after these variables.
 const cssVariables = `    .emlang-documents {
-        --text-color: #212529;
+        --background-color: #ffffff;
+		--text-color: #212529;
         --border-color: #ced4da;
 
         --trigger-color: #e9ecef;
@@ -211,6 +212,7 @@ const cssVariables = `    .emlang-documents {
 // cssRules contains the rest of the common CSS after variables and overrides.
 const cssRules = `
         align-items: flex-start;
+        background-color: var(--background-color);
         color: var(--text-color);
         display: inline-flex;
         flex-direction: column;
