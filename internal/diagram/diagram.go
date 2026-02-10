@@ -245,6 +245,11 @@ const cssRules = `
                 border-bottom: 1px solid var(--border-color);
             }
 
+            &.emlang-row-tests > div {
+                display: flex;
+                flex-direction: column;
+            }
+
             &:not(.emlang-row-tests) > div {
                 grid-template-columns: subgrid;
             }
