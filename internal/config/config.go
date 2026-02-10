@@ -12,13 +12,6 @@ type Config struct {
 	Lint    LintConfig    `yaml:"lint"`
 	Diagram DiagramConfig `yaml:"diagram"`
 	Fmt     FmtConfig     `yaml:"fmt"`
-	Repl    ReplConfig    `yaml:"repl"`
-}
-
-// ReplConfig holds REPL server configuration.
-type ReplConfig struct {
-	Address string `yaml:"address"`
-	Port    int    `yaml:"port"`
 }
 
 // FmtConfig holds formatter configuration.

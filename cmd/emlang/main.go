@@ -55,8 +55,6 @@ func main() {
 		cmdLint(args[1:], cfg)
 	case "fmt":
 		cmdFmt(args[1:], cfg)
-	case "repl":
-		cmdRepl(args[1:], cfg)
 	case "diagram":
 		cmdDiagram(args[1:], cfg)
 	default:
@@ -91,8 +89,6 @@ func printUsage() {
 	fmt.Println("  lint <file>          Lint a YAML source file for issues (use - for stdin)")
 	fmt.Println("  fmt <file>           Format a YAML source file (use - for stdin, -w for in-place)")
 	fmt.Println("                       --keys short|long: override key style")
-	fmt.Println("  repl [file]          Start an interactive REPL with live diagram preview")
-	fmt.Println("                       --address, --port: server options")
 	fmt.Println("  diagram <file>       Generate an HTML diagram (use - for stdin, -o file for output)")
 	fmt.Println("                       --serve [--address 127.0.0.1] [--port 8274]: live-reload server")
 	fmt.Println("  init                 Create a .emlang.yaml config file with defaults")
@@ -111,10 +107,6 @@ lint:
 
 fmt:
   # keys: long
-
-repl:
-  # address: 127.0.0.1
-  # port: 8275
 
 diagram:
   # serve:
@@ -318,44 +310,6 @@ func cmdFmt(args []string, cfg *config.Config) {
 		}
 	} else {
 		os.Stdout.Write(out)
-	}
-}
-
-func cmdRepl(args []string, cfg *config.Config) {
-	flags := pflag.NewFlagSet("repl", pflag.ExitOnError)
-	portFlag := flags.Int("port", 0, "port for the REPL server")
-	addressFlag := flags.String("address", "", "listen address for the REPL server")
-	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: emlang repl [--address 127.0.0.1] [--port 8275] [file]")
-		flags.PrintDefaults()
-	}
-	flags.Parse(args)
-
-	var filePath string
-	if flags.NArg() > 0 {
-		filePath = flags.Arg(0)
-	}
-
-	// Priority: flag > config > default
-	addr := "127.0.0.1"
-	if cfg.Repl.Address != "" {
-		addr = cfg.Repl.Address
-	}
-	if flags.Changed("address") {
-		addr = *addressFlag
-	}
-
-	port := 8275
-	if cfg.Repl.Port != 0 {
-		port = cfg.Repl.Port
-	}
-	if flags.Changed("port") {
-		port = *portFlag
-	}
-
-	if err := serve.StartRepl(filePath, addr, port, cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
 	}
 }
 
