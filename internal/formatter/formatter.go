@@ -10,7 +10,7 @@ import (
 
 // Options controls formatting behaviour.
 type Options struct {
-	KeyStyle string // "short" or "long" (default "long")
+	KeyStyle string // "short" or "long" (default "short")
 }
 
 // typeKey returns the YAML key for an element type based on key style.
@@ -35,7 +35,7 @@ func typeKey(t ast.ElementType, style string) string {
 // Format renders the AST document as canonical YAML.
 func Format(doc *ast.Document, opts Options) []byte {
 	if opts.KeyStyle == "" {
-		opts.KeyStyle = "long"
+		opts.KeyStyle = "short"
 	}
 
 	var buf bytes.Buffer

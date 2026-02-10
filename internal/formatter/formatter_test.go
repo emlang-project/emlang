@@ -261,10 +261,10 @@ func TestDefaultKeyStyle(t *testing.T) {
 		t.Fatalf("parse: %v", err)
 	}
 
-	// Default (empty) should behave as "long"
+	// Default (empty) should behave as "short"
 	out := string(Format(doc, Options{}))
-	if !strings.Contains(out, "trigger: Foo") {
-		t.Errorf("default key style should be long, got:\n%s", out)
+	if !strings.Contains(out, "t: Foo") {
+		t.Errorf("default key style should be short, got:\n%s", out)
 	}
 }
 
