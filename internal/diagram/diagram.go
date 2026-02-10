@@ -500,14 +500,7 @@ func writeTestsRow(w *writer, l *layout, sd *ast.SubDoc) {
 		w.indent(3)
 		w.write("<div>")
 		if len(slice.Tests) > 0 {
-			// Sort test names for deterministic output
-			testNames := make([]string, 0, len(slice.Tests))
-			for tn := range slice.Tests {
-				testNames = append(testNames, tn)
-			}
-			sort.Strings(testNames)
-
-			for _, tn := range testNames {
+			for _, tn := range slice.TestOrder {
 				test := slice.Tests[tn]
 				w.nl()
 				w.line(4, `<div class="emlang-test">`)

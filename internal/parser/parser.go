@@ -184,11 +184,12 @@ func parseSlice(name string, node *yaml.Node) (*ast.Slice, error) {
 				}
 
 			case "tests":
-				tests, err := parseTests(valueNode)
+				tests, testOrder, err := parseTests(valueNode)
 				if err != nil {
 					return nil, fmt.Errorf("tests: %w", err)
 				}
 				slice.Tests = tests
+				slice.TestOrder = testOrder
 
 			default:
 				return nil, fmt.Errorf("unknown slice key %q at line %d", keyNode.Value, keyNode.Line)
@@ -207,17 +208,18 @@ func parseSlice(name string, node *yaml.Node) (*ast.Slice, error) {
 }
 
 // parseTests parses tests attached to a slice.
-func parseTests(node *yaml.Node) (map[string]*ast.Test, error) {
+func parseTests(node *yaml.Node) (map[string]*ast.Test, []string, error) {
 	tests := make(map[string]*ast.Test)
 
 	if isNullNode(node) {
-		return tests, nil
+		return tests, nil, nil
 	}
 
 	if node.Kind != yaml.MappingNode {
-		return nil, fmt.Errorf("tests must be a mapping at line %d", node.Line)
+		return nil, nil, fmt.Errorf("tests must be a mapping at line %d", node.Line)
 	}
 
+	order := make([]string, 0, len(node.Content)/2)
 	for i := 0; i < len(node.Content); i += 2 {
 		keyNode := node.Content[i]
 		valueNode := node.Content[i+1]
@@ -225,13 +227,14 @@ func parseTests(node *yaml.Node) (map[string]*ast.Test, error) {
 		testName := keyNode.Value
 		test, err := parseTest(testName, valueNode)
 		if err != nil {
-			return nil, fmt.Errorf("test %q: %w", testName, err)
+			return nil, nil, fmt.Errorf("test %q: %w", testName, err)
 		}
 
 		tests[testName] = test
+		order = append(order, testName)
 	}
 
-	return tests, nil
+	return tests, order, nil
 }
 
 // parseTest parses a single test definition.

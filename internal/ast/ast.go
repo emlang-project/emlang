@@ -18,9 +18,10 @@ type Document struct {
 // Slice represents a named slice (sequence of elements).
 // Supports both direct form (just elements) and extended form (steps + tests).
 type Slice struct {
-	Name     string
-	Elements []*Element       // slice steps
-	Tests    map[string]*Test // attached tests (extended form only)
+	Name      string
+	Elements  []*Element       // slice steps
+	Tests     map[string]*Test // attached tests (extended form only)
+	TestOrder []string         // insertion order of test names
 }
 
 // Test represents a test with Given-When-Then structure.
