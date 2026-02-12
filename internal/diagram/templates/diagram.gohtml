@@ -1,0 +1,19 @@
+{{define "diagram"}}<style>
+{{template "css"}}
+{{- if .Overrides}}
+    .emlang-documents {
+{{- range .Overrides}}
+        {{.Key}}: {{.Value}};
+{{- end}}
+    }
+{{end}}
+{{- range .Documents}}
+{{template "document-css" .}}
+{{- end}}
+</style>
+<div class="emlang-documents">
+{{- range .Documents}}
+{{template "document" .}}
+{{- end}}
+</div>
+{{end}}

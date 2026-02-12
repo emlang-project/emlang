@@ -1,0 +1,8 @@
+{{define "props"}}{{if .}}
+<dl class="emlang-props">
+{{- range .}}
+<dt>{{.Key}}</dt>
+<dd>{{.Value}}</dd>
+{{- end}}
+</dl>
+{{- end}}{{end}}

@@ -1,0 +1,14 @@
+{{define "row-elements"}}<div class="emlang-row {{.Class}}">
+{{- if .HasSwimlanes}}
+<div>{{if .Swimlane}}
+<span class="emlang-swimlane">{{.Swimlane}}</span>
+{{- end}}</div>
+{{- end}}
+{{- range .Slices}}
+<div>
+{{- range .Elements}}
+{{template "element" .}}
+{{- end}}
+</div>
+{{- end}}
+</div>{{end}}

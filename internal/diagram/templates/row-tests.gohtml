@@ -1,0 +1,47 @@
+{{define "row-tests"}}<div class="emlang-row emlang-row-tests">
+{{- if .HasSwimlanes}}
+<div></div>
+{{- end}}
+{{- range .Slices}}
+<div>
+{{- range .Tests}}
+<div class="emlang-test">
+<span>{{.Name}}</span>
+{{- if .HasGiven}}
+<span>GIVEN</span>
+<div>
+{{- range .Given}}
+<div class="{{.CSSClass}}">
+<span>{{.Name}}</span>
+{{- template "props" .Props}}
+</div>
+{{- end}}
+</div>
+{{- end}}
+{{- if .HasWhen}}
+<span>WHEN</span>
+<div>
+{{- range .When}}
+<div class="{{.CSSClass}}">
+<span>{{.Name}}</span>
+{{- template "props" .Props}}
+</div>
+{{- end}}
+</div>
+{{- end}}
+{{- if .HasThen}}
+<span>THEN</span>
+<div>
+{{- range .Then}}
+<div class="{{.CSSClass}}">
+<span>{{.Name}}</span>
+{{- template "props" .Props}}
+</div>
+{{- end}}
+</div>
+{{- end}}
+</div>
+{{- end}}
+</div>
+{{- end}}
+</div>{{end}}

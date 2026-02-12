@@ -1,0 +1,13 @@
+{{define "document-css"}}
+    #{{.ID}} {
+        grid-template-columns: repeat({{.TotalColumns}}, auto);
+
+        .emlang-row {
+{{- range .SliceColumns}}
+            & > div:nth-child({{.ChildIndex}}) {
+                grid-column: {{.StartCol}} / span {{.Span}};
+            }
+{{end}}
+        }
+    }
+{{end}}

@@ -1,14 +1,20 @@
 package diagram
 
 import (
+	"bytes"
 	"crypto/sha1"
+	"embed"
 	"fmt"
-	"html"
+	"html/template"
 	"sort"
-	"strings"
 
 	"github.com/emlang-project/emlang/internal/ast"
 )
+
+//go:embed templates/*.gohtml
+var templateFS embed.FS
+
+var tmpl = template.Must(template.ParseFS(templateFS, "templates/*.gohtml"))
 
 // Generator generates HTML diagrams from an AST.
 type Generator struct {
@@ -18,32 +24,6 @@ type Generator struct {
 // New creates a new diagram Generator.
 func New() *Generator {
 	return &Generator{}
-}
-
-// writer wraps a strings.Builder and emits formatted whitespace.
-type writer struct {
-	b *strings.Builder
-}
-
-func (w *writer) write(s string) {
-	w.b.WriteString(s)
-}
-
-func (w *writer) nl() {
-	w.b.WriteByte('\n')
-}
-
-func (w *writer) indent(level int) {
-	for i := 0; i < level*4; i++ {
-		w.b.WriteByte(' ')
-	}
-}
-
-// indentNL writes indent then content then newline.
-func (w *writer) line(level int, s string) {
-	w.indent(level)
-	w.b.WriteString(s)
-	w.nl()
 }
 
 // contentHash returns the first 12 hex characters of the SHA-1 hash of raw.
@@ -56,40 +36,6 @@ func contentHash(raw []byte) string {
 // e.g. "emlang-document-2fd4e1c67a2d-0".
 func documentID(hash string, idx int) string {
 	return fmt.Sprintf("emlang-document-%s-%d", hash, idx)
-}
-
-// Generate creates an HTML diagram from the given document.
-func (g *Generator) Generate(doc *ast.Document) ([]byte, error) {
-	subDocs := doc.SubDocs
-	if len(subDocs) == 0 {
-		return []byte(""), nil
-	}
-
-	var b strings.Builder
-	w := &writer{b: &b}
-
-	hash := contentHash(doc.RawSource)
-
-	// Generate per-document CSS
-	w.write("<style>")
-	w.nl()
-	writeCommonCSS(w, g.CSSOverrides)
-	for i, sd := range subDocs {
-		writeDocumentCSS(w, hash, i, sd)
-	}
-	w.write("</style>")
-	w.nl()
-
-	// Generate HTML
-	w.write(`<div class="emlang-documents">`)
-	w.nl()
-	for i, sd := range subDocs {
-		writeDocument(w, hash, i, sd)
-	}
-	w.write("</div>")
-	w.nl()
-
-	return []byte(b.String()), nil
 }
 
 // layout holds precomputed layout info for a subdocument.
@@ -180,309 +126,195 @@ func elementIndex(slice *ast.Slice, elem *ast.Element) int {
 	return 1
 }
 
-// cssVariables contains the CSS custom properties for .emlang-documents.
-// Overrides from config are injected after these variables.
-const cssVariables = `    .emlang-documents {
-        --background-color: #ffffff;
-		--text-color: #212529;
-        --border-color: #ced4da;
+// --- Template data structures ---
 
-        --trigger-color: #e9ecef;
-        --command-color: #a5d8ff;
-        --event-color: #ffd8a8;
-        --exception-color: #ffc9c9;
-        --view-color: #b2f2bb;
-        --item-border-radius: 0.5em;
+type diagramData struct {
+	Overrides []cssOverride
+	Documents []documentData
+}
 
-        --font-family-normal: system-ui;
-        --font-family-props: monospace;
+type cssOverride struct {
+	Key   template.CSS
+	Value template.CSS
+}
 
-        --font-size-slicename: 2em;
-        --font-weight-slicename: normal;
-        --font-size-swimlane: 1.5em;
-        --font-weight-swimlane: normal;
-        --font-size-testname: 1em;
-        --font-weight-testname: bold;
-        --font-size-label: 0.75em;
-        --font-weight-label: normal;
-        --font-size-props: 0.75em;
-        --font-weight-props: normal;
-`
+type documentData struct {
+	ID           string
+	TotalColumns int
+	HasSwimlanes bool
+	SliceColumns []sliceColumnData
+	SliceNames   []sliceNameData
+	Rows         []rowData
+}
 
-// cssRules contains the rest of the common CSS after variables and overrides.
-const cssRules = `
-        align-items: flex-start;
-        background-color: var(--background-color);
-        color: var(--text-color);
-        display: inline-flex;
-        flex-direction: column;
-        gap: 2em;
-    }
+type sliceColumnData struct {
+	ChildIndex int
+	StartCol   int
+	Span       int
+}
 
-    .emlang-document {
-        *, *:after, *:before {
-            box-sizing: border-box;
-        }
+type sliceNameData struct {
+	DisplayName string
+}
 
-        display: inline-grid;
-        font-family: var(--font-family-normal), system-ui;
+type rowData struct {
+	Class        string
+	HasSwimlanes bool
+	Swimlane     string
+	Slices       []rowSliceData
+}
 
-        .emlang-row {
-            display: contents;
+type rowSliceData struct {
+	Elements []elementData
+	Tests    []testData
+}
 
-            & > div {
-                align-items: flex-start;
-                display: grid;
-                gap: 1em;
-                padding: 0.5em;
+type elementData struct {
+	CSSClass string
+	Name     string
+	GridCol  int
+	Props    []propData
+}
 
-                &:not(:first-child) {
-                    border-left: 1px solid var(--border-color);
-                }
-            }
+type testData struct {
+	Name     string
+	HasGiven bool
+	Given    []elementData
+	HasWhen  bool
+	When     []elementData
+	HasThen  bool
+	Then     []elementData
+}
 
-            &:not(:last-child) > div {
-                border-bottom: 1px solid var(--border-color);
-            }
+type propData struct {
+	Key   string
+	Value string
+}
 
-            &.emlang-row-tests > div {
-                display: flex;
-                flex-direction: column;
-            }
+// --- Build template data ---
 
-            &:not(.emlang-row-tests) > div {
-                grid-template-columns: subgrid;
-            }
-        }
+func (g *Generator) buildDiagramData(doc *ast.Document) diagramData {
+	hash := contentHash(doc.RawSource)
 
-        .emlang-slicename {
-            font-size: var(--font-size-slicename);
-            font-weight: var(--font-weight-slicename);
-            grid-column: 1 / -1;
-        }
-
-        .emlang-swimlane {
-            font-size: var(--font-size-swimlane);
-            font-weight: var(--font-weight-swimlane);
-        }
-
-        .emlang-trigger,
-        .emlang-command,
-        .emlang-view,
-        .emlang-event,
-        .emlang-exception {
-            border-radius: var(--item-border-radius);
-            display: inline-flex;
-            flex-direction: column;
-            gap: 0.5em;
-            padding: 0.5em;
-        }
-
-        .emlang-trigger { background-color: var(--trigger-color); }
-        .emlang-command { background-color: var(--command-color); }
-        .emlang-view { background-color: var(--view-color); }
-        .emlang-event { background-color: var(--event-color); }
-        .emlang-exception { background-color: var(--exception-color); }
-
-        .emlang-props {
-            column-gap: 0.5em;
-            display: inline-grid;
-            grid-template-columns: auto auto;
-            margin: 0;
-
-            dt:after {
-                content: ': ';
-            }
-
-            * {
-                font-family: var(--font-family-props), monospace;
-                font-size: var(--font-size-props);
-                font-weight: var(--font-weight-props);
-                margin: 0;
-            }
-        }
-
-        .emlang-test {
-            display: inline-grid;
-            gap: 1em;
-            grid-template-columns: auto 1fr;
-
-            & > span:first-child {
-                font-size: var(--font-size-testname);
-                font-weight: var(--font-weight-testname);
-                grid-column: 1/-1;
-            }
-
-            & > span:not(:first-child) {
-                font-size: var(--font-size-label);
-                font-weight: var(--font-weight-label);
-            }
-
-            &:not(:last-child) {
-                border-bottom: 1px solid var(--border-color);
-                padding-bottom: 1em;
-            }
-
-            div {
-                align-items: flex-start;
-                display: flex;
-                flex-direction: column;
-                gap: 0.5em;
-            }
-        }
-
-    }
-`
-
-func writeCommonCSS(w *writer, overrides map[string]string) {
-	w.write(cssVariables)
-	if len(overrides) > 0 {
-		keys := make([]string, 0, len(overrides))
-		for k := range overrides {
+	var overrides []cssOverride
+	if len(g.CSSOverrides) > 0 {
+		keys := make([]string, 0, len(g.CSSOverrides))
+		for k := range g.CSSOverrides {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			w.line(2, fmt.Sprintf(`%s: %s;`, k, overrides[k]))
+			overrides = append(overrides, cssOverride{Key: template.CSS(k), Value: template.CSS(g.CSSOverrides[k])})
 		}
 	}
-	w.write(cssRules)
+
+	var docs []documentData
+	for i, sd := range doc.SubDocs {
+		docs = append(docs, buildDocumentData(hash, i, sd))
+	}
+
+	return diagramData{
+		Overrides: overrides,
+		Documents: docs,
+	}
 }
 
-func writeDocumentCSS(w *writer, hash string, idx int, sd *ast.SubDoc) {
+func buildDocumentData(hash string, idx int, sd *ast.SubDoc) documentData {
 	l := computeLayout(sd)
-	w.line(1, fmt.Sprintf("#%s {", documentID(hash, idx)))
-	w.line(2, fmt.Sprintf("grid-template-columns: repeat(%d, auto);", l.totalColumns))
-	w.nl()
-	w.line(2, ".emlang-row {")
 
+	// Slice columns for CSS
+	var cols []sliceColumnData
 	if l.hasSwimlanes {
-		// First child is column 1 (swimlane label)
-		w.line(3, "& > div:nth-child(1) {")
-		w.line(4, "grid-column: 1/2;")
-		w.line(3, "}")
-
-		// Each slice gets its column range
+		cols = append(cols, sliceColumnData{ChildIndex: 1, StartCol: 1, Span: 1})
 		for i, name := range sd.SliceOrder {
-			w.nl()
-			w.line(3, fmt.Sprintf("& > div:nth-child(%d) {", i+2))
-			w.line(4, fmt.Sprintf("grid-column: %d / span %d;", l.sliceStartCol[name], l.sliceWidths[name]))
-			w.line(3, "}")
+			cols = append(cols, sliceColumnData{
+				ChildIndex: i + 2,
+				StartCol:   l.sliceStartCol[name],
+				Span:       l.sliceWidths[name],
+			})
 		}
 	} else {
-		// No swimlane column; slices start at child 1
 		for i, name := range sd.SliceOrder {
-			if i > 0 {
-				w.nl()
-			}
-			w.line(3, fmt.Sprintf("& > div:nth-child(%d) {", i+1))
-			w.line(4, fmt.Sprintf("grid-column: %d / span %d;", l.sliceStartCol[name], l.sliceWidths[name]))
-			w.line(3, "}")
+			cols = append(cols, sliceColumnData{
+				ChildIndex: i + 1,
+				StartCol:   l.sliceStartCol[name],
+				Span:       l.sliceWidths[name],
+			})
 		}
 	}
 
-	w.line(2, "}")
-	w.line(1, "}")
-	w.nl()
-}
-
-func writeDocument(w *writer, hash string, idx int, sd *ast.SubDoc) {
-	l := computeLayout(sd)
-
-	w.line(1, fmt.Sprintf(`<div id="%s" class="emlang-document">`, documentID(hash, idx)))
-
-	// Row: slice names
-	writeSliceNamesRow(w, l, sd)
-
-	// Rows: triggers (one per swimlane)
-	for _, lane := range l.triggerLanes {
-		writeElementRow(w, l, sd, "emlang-row-triggers", lane, func(e *ast.Element) bool {
-			return e.Type == ast.ElementTrigger && e.Swimlane == lane
-		})
-	}
-
-	// Row: main (commands + views)
-	if l.hasMainRow {
-		writeElementRow(w, l, sd, "emlang-row-main", "", func(e *ast.Element) bool {
-			return e.Type == ast.ElementCommand || e.Type == ast.ElementView
-		})
-	}
-
-	// Rows: events (one per swimlane)
-	for _, lane := range l.eventLanes {
-		writeElementRow(w, l, sd, "emlang-row-events", lane, func(e *ast.Element) bool {
-			return (e.Type == ast.ElementEvent || e.Type == ast.ElementException) && e.Swimlane == lane
-		})
-	}
-
-	// Row: tests
-	if hasTests(sd) {
-		writeTestsRow(w, l, sd)
-	}
-
-	w.line(1, "</div>")
-}
-
-func writeSliceNamesRow(w *writer, l *layout, sd *ast.SubDoc) {
-	w.line(2, `<div class="emlang-row emlang-row-slices">`)
-	if l.hasSwimlanes {
-		w.line(3, "<div></div>")
-	}
+	// Slice names
+	var names []sliceNameData
 	for _, name := range l.sliceOrder {
 		displayName := name
 		if displayName == "" {
 			displayName = "(anonymous)"
 		}
-		w.line(3, "<div>")
-		w.line(4, fmt.Sprintf(`<span class="emlang-slicename">%s</span>`, html.EscapeString(displayName)))
-		w.line(3, "</div>")
+		names = append(names, sliceNameData{DisplayName: displayName})
 	}
-	w.line(2, "</div>")
+
+	// Rows
+	var rows []rowData
+
+	// Trigger rows (one per swimlane)
+	for _, lane := range l.triggerLanes {
+		rows = append(rows, buildElementRow(l, sd, "emlang-row-triggers", lane, func(e *ast.Element) bool {
+			return e.Type == ast.ElementTrigger && e.Swimlane == lane
+		}))
+	}
+
+	// Main row (commands + views)
+	if l.hasMainRow {
+		rows = append(rows, buildElementRow(l, sd, "emlang-row-main", "", func(e *ast.Element) bool {
+			return e.Type == ast.ElementCommand || e.Type == ast.ElementView
+		}))
+	}
+
+	// Event rows (one per swimlane)
+	for _, lane := range l.eventLanes {
+		rows = append(rows, buildElementRow(l, sd, "emlang-row-events", lane, func(e *ast.Element) bool {
+			return (e.Type == ast.ElementEvent || e.Type == ast.ElementException) && e.Swimlane == lane
+		}))
+	}
+
+	// Tests row
+	if hasTests(sd) {
+		rows = append(rows, buildTestsRow(l, sd))
+	}
+
+	return documentData{
+		ID:           documentID(hash, idx),
+		TotalColumns: l.totalColumns,
+		HasSwimlanes: l.hasSwimlanes,
+		SliceColumns: cols,
+		SliceNames:   names,
+		Rows:         rows,
+	}
 }
 
-// elementFilter returns true for elements that should appear in a row.
-type elementFilter func(elem *ast.Element) bool
-
-// writeElementRow writes a row of elements filtered by the given predicate.
-// lane is the swimlane label to display (empty string for no label). rowClass is the CSS class suffix.
-func writeElementRow(w *writer, l *layout, sd *ast.SubDoc, rowClass string, lane string, match elementFilter) {
-	w.line(2, fmt.Sprintf(`<div class="emlang-row %s">`, rowClass))
-	if l.hasSwimlanes {
-		w.indent(3)
-		w.write("<div>")
-		if lane != "" {
-			w.nl()
-			w.line(4, fmt.Sprintf(`<span class="emlang-swimlane">%s</span>`, html.EscapeString(lane)))
-			w.indent(3)
-		}
-		w.write("</div>")
-		w.nl()
-	}
-
+func buildElementRow(l *layout, sd *ast.SubDoc, class string, lane string, match func(*ast.Element) bool) rowData {
+	var slices []rowSliceData
 	for _, name := range l.sliceOrder {
 		slice := sd.Slices[name]
-		w.indent(3)
-		w.write("<div>")
-		hasContent := false
+		var elems []elementData
 		for _, elem := range slice.Elements {
 			if match(elem) {
-				hasContent = true
-				gridCol := elementIndex(slice, elem)
-				cssClass := "emlang-" + elem.Type.String()
-				w.nl()
-				w.line(4, fmt.Sprintf(`<div class="%s" style="grid-column: %d">`, cssClass, gridCol))
-				w.line(5, fmt.Sprintf("<span>%s</span>", html.EscapeString(elem.Name)))
-				writeProps(w, elem.Props, 5)
-				w.line(4, "</div>")
+				elems = append(elems, elementData{
+					CSSClass: "emlang-" + elem.Type.String(),
+					Name:     elem.Name,
+					GridCol:  elementIndex(slice, elem),
+					Props:    buildProps(elem.Props),
+				})
 			}
 		}
-		if hasContent {
-			w.indent(3)
-		}
-		w.write("</div>")
-		w.nl()
+		slices = append(slices, rowSliceData{Elements: elems})
 	}
-	w.line(2, "</div>")
+	return rowData{
+		Class:        class,
+		HasSwimlanes: l.hasSwimlanes,
+		Swimlane:     lane,
+		Slices:       slices,
+	}
 }
 
 func hasTests(sd *ast.SubDoc) bool {
@@ -494,78 +326,70 @@ func hasTests(sd *ast.SubDoc) bool {
 	return false
 }
 
-func writeTestsRow(w *writer, l *layout, sd *ast.SubDoc) {
-	w.line(2, `<div class="emlang-row emlang-row-tests">`)
-	if l.hasSwimlanes {
-		w.line(3, "<div></div>")
-	}
-
+func buildTestsRow(l *layout, sd *ast.SubDoc) rowData {
+	var slices []rowSliceData
 	for _, name := range l.sliceOrder {
 		slice := sd.Slices[name]
-		w.indent(3)
-		w.write("<div>")
-		if len(slice.Tests) > 0 {
-			for _, tn := range slice.TestOrder {
-				test := slice.Tests[tn]
-				w.nl()
-				w.line(4, `<div class="emlang-test">`)
-				w.line(5, fmt.Sprintf("<span>%s</span>", html.EscapeString(test.Name)))
-
-				// GIVEN
-				if test.HasGiven {
-					w.line(5, "<span>GIVEN</span>")
-					w.line(5, "<div>")
-					for _, elem := range test.Given {
-						writeTestElement(w, elem, 6)
-					}
-					w.line(5, "</div>")
-				}
-
-				// WHEN
-				if test.HasWhen {
-					w.line(5, "<span>WHEN</span>")
-					w.line(5, "<div>")
-					for _, elem := range test.When {
-						writeTestElement(w, elem, 6)
-					}
-					w.line(5, "</div>")
-				}
-
-				// THEN
-				if test.HasThen {
-					w.line(5, "<span>THEN</span>")
-					w.line(5, "<div>")
-					for _, elem := range test.Then {
-						writeTestElement(w, elem, 6)
-					}
-					w.line(5, "</div>")
-				}
-
-				w.line(4, "</div>")
-			}
-			w.indent(3)
+		var tests []testData
+		for _, tn := range slice.TestOrder {
+			test := slice.Tests[tn]
+			tests = append(tests, testData{
+				Name:     test.Name,
+				HasGiven: test.HasGiven,
+				Given:    buildTestElements(test.Given),
+				HasWhen:  test.HasWhen,
+				When:     buildTestElements(test.When),
+				HasThen:  test.HasThen,
+				Then:     buildTestElements(test.Then),
+			})
 		}
-		w.write("</div>")
-		w.nl()
+		slices = append(slices, rowSliceData{Tests: tests})
 	}
-	w.line(2, "</div>")
+	return rowData{
+		Class:        "emlang-row-tests",
+		HasSwimlanes: l.hasSwimlanes,
+		Slices:       slices,
+	}
 }
 
-func writeTestElement(w *writer, elem *ast.Element, level int) {
-	w.line(level, fmt.Sprintf(`<div class="emlang-%s">`, elem.Type.String()))
-	w.line(level+1, fmt.Sprintf("<span>%s</span>", html.EscapeString(elem.Name)))
-	writeProps(w, elem.Props, level+1)
-	w.line(level, "</div>")
+func buildTestElements(elems []*ast.Element) []elementData {
+	var result []elementData
+	for _, elem := range elems {
+		result = append(result, elementData{
+			CSSClass: "emlang-" + elem.Type.String(),
+			Name:     elem.Name,
+			Props:    buildProps(elem.Props),
+		})
+	}
+	return result
 }
 
-func writeProps(w *writer, props []ast.PropEntry, level int) {
+func buildProps(props []ast.PropEntry) []propData {
 	if len(props) == 0 {
-		return
+		return nil
 	}
-	w.line(level, `<dl class="emlang-props">`)
-	for _, p := range props {
-		w.line(level+1, fmt.Sprintf("<dt>%s</dt>", html.EscapeString(p.Key)))
-		w.line(level+1, fmt.Sprintf("<dd>%s</dd>", html.EscapeString(fmt.Sprintf("%v", p.Value))))
+	result := make([]propData, len(props))
+	for i, p := range props {
+		result[i] = propData{
+			Key:   p.Key,
+			Value: fmt.Sprintf("%v", p.Value),
+		}
 	}
-	w.line(level, "</dl>")
+	return result
+}
+
+// Generate creates an HTML diagram from the given document.
+func (g *Generator) Generate(doc *ast.Document) ([]byte, error) {
+	if len(doc.SubDocs) == 0 {
+		return []byte(""), nil
+	}
+
+	data := g.buildDiagramData(doc)
+
+	var buf bytes.Buffer
+	if err := tmpl.ExecuteTemplate(&buf, "diagram", data); err != nil {
+		return nil, fmt.Errorf("executing diagram template: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }

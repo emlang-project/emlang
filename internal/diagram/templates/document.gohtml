@@ -1,0 +1,10 @@
+{{define "document"}}<div id="{{.ID}}" class="emlang-document">
+{{- template "row-slicenames" .}}
+{{- range .Rows}}
+{{- if eq .Class "emlang-row-tests"}}
+{{template "row-tests" .}}
+{{- else}}
+{{template "row-elements" .}}
+{{- end}}
+{{- end}}
+</div>{{end}}

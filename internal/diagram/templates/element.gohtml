@@ -1,0 +1,4 @@
+{{define "element"}}<div class="{{.CSSClass}}" style="grid-column: {{.GridCol}}">
+<span>{{.Name}}</span>
+{{- template "props" .Props}}
+</div>{{end}}

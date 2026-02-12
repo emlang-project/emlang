@@ -1,0 +1,10 @@
+{{define "row-slicenames"}}<div class="emlang-row emlang-row-slices">
+{{- if .HasSwimlanes}}
+<div></div>
+{{- end}}
+{{- range .SliceNames}}
+<div>
+<span class="emlang-slicename">{{.DisplayName}}</span>
+</div>
+{{- end}}
+</div>{{end}}
