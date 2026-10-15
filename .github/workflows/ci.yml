@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            gofmt -l .
+            exit 1
+          fi
+
+      - run: go vet ./...
+
+      - run: go build ./...
+
+      - run: GOOS=js GOARCH=wasm go build ./cmd/wasm
+
+      - run: go test ./...
+
+  race:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - run: go test -race ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
