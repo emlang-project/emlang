@@ -21,6 +21,16 @@ jobs:
       - name: Build all platforms
         run: make build-all build-wasm VERSION=${{ github.ref_name }}
 
+      - name: Compute checksums
+        working-directory: bin
+        run: |
+          sha256sum \
+            emlang-linux-amd64 \
+            emlang-darwin-amd64 \
+            emlang-darwin-arm64 \
+            emlang-windows-amd64.exe \
+            emlang.wasm > SHA256SUMS
+
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -31,4 +41,5 @@ jobs:
             bin/emlang-darwin-arm64 \
             bin/emlang-windows-amd64.exe \
             bin/emlang.wasm \
+            bin/SHA256SUMS \
             --generate-notes

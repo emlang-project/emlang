@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall/js"
 
+	"github.com/emlang-project/emlang/internal/buildinfo"
 	"github.com/emlang-project/emlang/internal/diagram"
 	"github.com/emlang-project/emlang/internal/formatter"
 	"github.com/emlang-project/emlang/internal/linter"
@@ -83,9 +84,14 @@ func format(_ js.Value, args []js.Value) interface{} {
 	return map[string]interface{}{"yaml": string(out)}
 }
 
+func version(_ js.Value, _ []js.Value) interface{} {
+	return buildinfo.Version
+}
+
 func main() {
 	js.Global().Set("emlangRender", js.FuncOf(render))
 	js.Global().Set("emlangFormat", js.FuncOf(format))
+	js.Global().Set("emlangVersion", js.FuncOf(version))
 
 	// Signal ready
 	if cb := js.Global().Get("onEmlangReady"); cb.Truthy() {

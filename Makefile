@@ -1,12 +1,12 @@
 # emlang Makefile
 
 BINARY_NAME=emlang
-VERSION=1.0.0
+VERSION := $(shell git describe --tags --always --dirty)
 BUILD_DIR=bin
 GO=go
 
 # Build flags
-LDFLAGS=-ldflags="-s -w -X main.version=$(VERSION)"
+LDFLAGS=-ldflags="-s -w -X github.com/emlang-project/emlang/internal/buildinfo.Version=$(VERSION)"
 
 .PHONY: all build build-all build-dev build-wasm test lint fmt vet clean install help
 
@@ -83,7 +83,7 @@ run: build
 
 ## help: Show this help
 help:
-	@echo "emlang v$(VERSION) - The Emlang toolchain (https://emlang-project.github.io/)"
+	@echo "emlang $(VERSION) - The Emlang toolchain (https://emlang-project.github.io/)"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""

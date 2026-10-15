@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/emlang-project/emlang/internal/ast"
+	"github.com/emlang-project/emlang/internal/buildinfo"
 	"github.com/emlang-project/emlang/internal/config"
 	"github.com/emlang-project/emlang/internal/diagram"
 	"github.com/emlang-project/emlang/internal/formatter"
@@ -16,7 +17,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const version = "1.0.0"
 const specVersion = "1.0.0"
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 		cmdInit()
 		return
 	case "version":
-		fmt.Printf("emlang version %s (spec %s)\n", version, specVersion)
+		fmt.Printf("emlang version %s (spec %s)\n", buildinfo.Version, specVersion)
 		return
 	case "help", "-h", "--help":
 		printUsage()
