@@ -1,5 +1,5 @@
 # Binaries
-emlang
+/emlang
 *.exe
 *.exe~
 *.dll
