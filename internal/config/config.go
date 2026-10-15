@@ -16,7 +16,7 @@ type Config struct {
 
 // FmtConfig holds formatter configuration.
 type FmtConfig struct {
-	Keys string `yaml:"keys"` // "short" or "long" (default "long")
+	Keys string `yaml:"keys"` // "short" or "long" (default "short")
 }
 
 // LintConfig holds linter configuration.

@@ -68,7 +68,7 @@ Use `-` instead of a filename to read from stdin (not available with `fmt -w` or
 
 `emlang fmt` rewrites a document in a canonical form:
 
-- element keys use one style: long (`event`, the default) or short (`e`);
+- element keys use one style: short (`e`, the default) or long (`event`);
 - a slice without tests uses the direct form (list of elements, no `steps:` key);
 - keys are ordered: `steps` before `tests`, `given`, `when` then `then`, the element type before `props`;
 - element names and swimlanes are trimmed (`" Lane / Name "` becomes `"Lane/Name"`).
@@ -115,7 +115,7 @@ diagram:
 | Function | Returns |
 |----------|---------|
 | `emlangRender(source, css?)` | `{html, lint}`, or `{error}`. `css` is an optional object of CSS variable overrides. |
-| `emlangFormat(source, keys?)` | `{yaml}`, or `{error}`. `keys` is `"long"` (default) or `"short"`. |
+| `emlangFormat(source, keys?)` | `{yaml}`, or `{error}`. `keys` is `"short"` (default) or `"long"`. |
 | `emlangVersion()` | The version string. |
 
 ## Development

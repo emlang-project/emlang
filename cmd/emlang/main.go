@@ -106,7 +106,7 @@ lint:
   #   - slice-missing-event
 
 fmt:
-  # keys: long
+  # keys: short
 
 diagram:
   # serve:
@@ -292,11 +292,8 @@ func cmdFmt(args []string, cfg *config.Config) {
 
 	doc, _ := parseFile(inputArg)
 
-	// Priority: flag > config > default
-	keyStyle := "long"
-	if cfg.Fmt.Keys != "" {
-		keyStyle = cfg.Fmt.Keys
-	}
+	// Priority: flag > config > formatter default
+	keyStyle := cfg.Fmt.Keys
 	if flags.Changed("keys") {
 		keyStyle = *keysFlag
 	}

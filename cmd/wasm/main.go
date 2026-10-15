@@ -71,7 +71,7 @@ func format(_ js.Value, args []js.Value) interface{} {
 		return map[string]interface{}{"error": err.Error()}
 	}
 
-	keyStyle := "long"
+	var keyStyle string // empty: formatter default
 	if len(args) >= 2 && args[1].Type() == js.TypeString {
 		keyStyle = args[1].String()
 	}
