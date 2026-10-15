@@ -75,7 +75,10 @@ func format(_ js.Value, args []js.Value) interface{} {
 		keyStyle = args[1].String()
 	}
 
-	out := formatter.Format(doc, formatter.Options{KeyStyle: keyStyle})
+	out, err := formatter.Format(doc, formatter.Options{KeyStyle: keyStyle})
+	if err != nil {
+		return map[string]interface{}{"error": err.Error()}
+	}
 
 	return map[string]interface{}{"yaml": string(out)}
 }

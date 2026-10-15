@@ -63,6 +63,30 @@ func (t ElementType) String() string {
 	}
 }
 
+// elementKeys maps YAML keys to element types.
+var elementKeys = map[string]ElementType{
+	"t":         ElementTrigger,
+	"trg":       ElementTrigger,
+	"trigger":   ElementTrigger,
+	"c":         ElementCommand,
+	"cmd":       ElementCommand,
+	"command":   ElementCommand,
+	"e":         ElementEvent,
+	"evt":       ElementEvent,
+	"event":     ElementEvent,
+	"x":         ElementException,
+	"err":       ElementException,
+	"exception": ElementException,
+	"v":         ElementView,
+	"view":      ElementView,
+}
+
+// ElementTypeFromKey returns the element type for a YAML key (any alias).
+func ElementTypeFromKey(key string) (ElementType, bool) {
+	t, ok := elementKeys[key]
+	return t, ok
+}
+
 // PropEntry is a key-value pair that preserves insertion order.
 type PropEntry struct {
 	Key   string

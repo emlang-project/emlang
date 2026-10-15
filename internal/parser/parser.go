@@ -10,24 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// elementPrefixes maps YAML keys to element types.
-var elementPrefixes = map[string]ast.ElementType{
-	"t":         ast.ElementTrigger,
-	"trg":       ast.ElementTrigger,
-	"trigger":   ast.ElementTrigger,
-	"c":         ast.ElementCommand,
-	"cmd":       ast.ElementCommand,
-	"command":   ast.ElementCommand,
-	"e":         ast.ElementEvent,
-	"evt":       ast.ElementEvent,
-	"event":     ast.ElementEvent,
-	"x":         ast.ElementException,
-	"err":       ast.ElementException,
-	"exception": ast.ElementException,
-	"v":         ast.ElementView,
-	"view":      ast.ElementView,
-}
-
 // isNullNode returns true if the node represents a YAML null value.
 func isNullNode(node *yaml.Node) bool {
 	return node.Kind == yaml.ScalarNode && node.Tag == "!!null"
@@ -357,7 +339,7 @@ func parseElement(node *yaml.Node) (*ast.Element, error) {
 		}
 
 		// Check if it's an element type prefix
-		if elemType, ok := elementPrefixes[key]; ok {
+		if elemType, ok := ast.ElementTypeFromKey(key); ok {
 			if foundType {
 				return nil, fmt.Errorf("element has multiple type keys at line %d", node.Line)
 			}

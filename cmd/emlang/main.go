@@ -301,7 +301,11 @@ func cmdFmt(args []string, cfg *config.Config) {
 		keyStyle = *keysFlag
 	}
 
-	out := formatter.Format(doc, formatter.Options{KeyStyle: keyStyle})
+	out, err := formatter.Format(doc, formatter.Options{KeyStyle: keyStyle})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Format error in %s: %v\n", inputArg, err)
+		os.Exit(1)
+	}
 
 	if *writeFlag {
 		if err := os.WriteFile(inputArg, out, 0644); err != nil {
