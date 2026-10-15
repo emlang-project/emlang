@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emlang - Event Modeling Language</title>
+    <meta name="description" content="Event Modeling in YAML. A text-based DSL for Event Modeling.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="canonical" href="https://emlang-project.github.io/">
+    <meta property="og:title" content="Emlang - Event Modeling Language">
+    <meta property="og:description" content="Event Modeling in YAML. A text-based DSL for Event Modeling.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://emlang-project.github.io/">
+    <meta property="og:image" content="https://emlang-project.github.io/logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Emlang - Event Modeling Language">
+    <meta name="twitter:description" content="Event Modeling in YAML. A text-based DSL for Event Modeling.">
+    <meta name="twitter:image" content="https://emlang-project.github.io/logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Nav logo animation (homepage only) */
+        .nav-logo-img {
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: width 0.3s ease, opacity 0.3s ease;
+        }
+
+        nav.scrolled .nav-logo-img {
+            width: 28px;
+            opacity: 1;
+        }
+
+        /* Header */
+        header {
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-3);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--gray-9);
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            color: var(--gray-7);
+            margin-bottom: 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--violet-6);
+            color: white;
+            border: 2px solid var(--violet-6);
+        }
+
+        .btn-primary:hover {
+            background: var(--violet-7);
+            border-color: var(--violet-7);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--violet-6);
+            border: 2px solid var(--violet-6);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-0);
+        }
+
+        /* Sections (homepage overrides) */
+        section {
+            padding: 4rem 0;
+            border-bottom: none;
+        }
+
+        section h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        section p {
+            font-size: 1.125rem;
+        }
+
+        /* Carousel */
+        .carousel {
+            position: relative;
+            background: var(--gray-0);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .carousel-item {
+            display: none;
+        }
+
+        .carousel-item.active {
+            display: block;
+        }
+
+        .carousel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--violet-6);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .open-in-editor {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            background: var(--violet-6);
+            border-radius: 4px;
+            padding: 0.3rem 0.7rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .open-in-editor:hover {
+            background: var(--violet-7);
+        }
+
+        .install-wrapper {
+            position: relative;
+        }
+
+        .carousel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .carousel-nav button {
+            background: var(--violet-6);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .carousel-nav button:hover {
+            background: var(--violet-7);
+        }
+
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray-5);
+            cursor: pointer;
+        }
+
+        .indicator.active {
+            background: var(--violet-6);
+        }
+
+        /* Installation */
+        .install-box {
+            background: var(--gray-9);
+            color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            font-family: monospace;
+        }
+
+        /* Use Cases */
+        .use-cases {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .use-cases li {
+            padding: 0.75rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 1.125rem;
+            color: var(--gray-7);
+        }
+
+        .use-cases li:before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: var(--orange-6);
+            font-weight: 700;
+        }
+
+        /* Footer (homepage override) */
+        footer {
+            margin-top: 4rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .badges img {
+            height: 20px;
+        }
+
+        /* Responsive (homepage overrides) */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tagline {
+                font-size: 1.125rem;
+            }
+
+            section h2 {
+                font-size: 1.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a>
+            <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="spec.html">Specification</a></li>
+                <li><a href="cli.html">CLI Reference</a></li>
+                <li><a href="repl.html" target="_blank">Try Emlang</a></li>
+                <li><a href="https://github.com/emlang-project" target="_blank" aria-label="GitHub" class="nav-github"><svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <div class="container">
+            <svg class="logo" width="228.35938" height="158.6992" viewBox="0 0 228.35938 158.6992" version="1.1">
+                <g transform="translate(-84.853516,-176.65039)">
+                    <g style="fill:#f59f00;fill-opacity:1;stroke:#e67700;stroke-opacity:1" transform="translate(0,14.44824)">
+                        <path style="fill:#f59f00;fill-opacity:1;stroke:#e67700;stroke-width:10;stroke-linejoin:bevel;stroke-opacity:1" d="m 283.60352,263.03711 c -6.94445,0 -12.80382,2.34374 -17.57813,7.03125 -4.68751,4.68751 -7.03125,10.45876 -7.03125,17.31641 0,6.85765 2.34374,12.63085 7.03125,17.31835 4.77431,4.68751 10.63368,7.03126 17.57813,7.03126 6.94445,0 12.7617,-2.34375 17.44921,-7.03126 4.77431,-4.6875 7.16016,-10.4607 7.16016,-17.31835 0,-6.85765 -2.38585,-12.6289 -7.16016,-17.31641 -4.68751,-4.68751 -10.50476,-7.03125 -17.44921,-7.03125 z"/>
+                        <path style="fill:#f59f00;fill-opacity:1;stroke:#e67700;stroke-width:10;stroke-linejoin:bevel;stroke-opacity:1" d="m 283.60352,171.36914 c -6.94445,0 -12.80382,2.34374 -17.57813,7.03125 -4.68751,4.68751 -7.03125,10.46071 -7.03125,17.31836 0,6.85765 2.34374,12.63085 7.03125,17.31836 4.77431,4.68751 10.63368,7.03125 17.57813,7.03125 6.94445,0 12.7617,-2.34374 17.44921,-7.03125 4.77431,-4.68751 7.16016,-10.46071 7.16016,-17.31836 0,-6.85765 -2.38585,-12.63085 -7.16016,-17.31836 -4.68751,-4.68751 -10.50476,-7.03125 -17.44921,-7.03125 z"/>
+                    </g>
+                    <path style="fill:#7048e8;stroke:#5f3dc4;stroke-width:10;stroke-linejoin:round;stroke-opacity:1" d="m 161.07812,181.65039 c -14.32292,0 -26.86695,3.12499 -37.63085,9.375 -10.6771,6.25001 -18.96637,14.97394 -24.869145,26.17188 -5.81598,11.11112 -8.724609,24.04577 -8.724609,38.80273 0,15.191 2.908629,28.34199 8.724609,39.45312 5.902785,11.11113 14.322255,19.70486 25.259765,25.78125 10.93751,6.0764 23.87217,9.11523 38.80273,9.11523 11.71877,0 22.17946,-1.7808 31.38086,-5.33983 9.2014,-3.55904 16.79557,-8.50694 22.78516,-14.84375 6.07639,-6.42363 10.24305,-13.88759 12.5,-22.39453 l -40.36328,-5.20899 c -1.21528,3.21181 -3.03819,5.94618 -5.46875,8.20312 -2.34375,2.17014 -5.20833,3.86284 -8.59375,5.07813 -3.38542,1.12846 -7.16146,1.69335 -11.32813,1.69335 -5.90278,0 -11.069,-1.21591 -15.49609,-3.64648 -4.42709,-2.51737 -7.8546,-6.20725 -10.28516,-11.06835 -2.1263,-4.4889 -3.28906,-9.86951 -3.48632,-16.14454 h 96.97461 v -11.58984 c 0,-11.71877 -1.73481,-22.09135 -5.20704,-31.11914 -3.38542,-9.11459 -8.24717,-16.79687 -14.58398,-23.04688 -6.25001,-6.33681 -13.67186,-11.11046 -22.26563,-14.32227 -8.50696,-3.29861 -17.88193,-4.94921 -28.125,-4.94921 z m 0.52149,32.94336 c 5.90278,0 10.85069,1.25803 14.84375,3.77539 3.99307,2.51737 7.02995,6.16319 9.11328,10.9375 1.4074,3.16666 2.34025,6.77038 2.79688,10.80859 h -53.81641 c 0.4375,-4.07118 1.38541,-7.71701 2.84375,-10.9375 2.17014,-4.6007 5.29513,-8.16037 9.375,-10.67774 4.07987,-2.60417 9.02777,-3.90624 14.84375,-3.90624 z"/>
+                </g>
+            </svg>
+            <h1>Emlang</h1>
+            <p class="tagline">Event Modeling in YAML</p>
+            <div class="cta-buttons">
+                <a href="#getting-started" class="btn btn-primary">Get Started</a>
+                <a href="repl.html" target="_blank" class="btn btn-secondary">Try it live</a>
+            </div>
+        </div>
+    </header>
+
+    <section id="what-is-emlang">
+        <div class="container">
+            <h2>What is Emlang?</h2>
+            <p>Emlang is a <a href="spec.html" style="color: var(--violet-6); font-weight: 500;">text-based DSL</a> for Event Modeling that lets you write event models in YAML. It's also a complete <a href="cli.html" style="color: var(--violet-6); font-weight: 500;">toolchain</a> that validates syntax and generates HTML diagrams.</p>
+            <p>Event Modeling traditionally uses walls and visual tools for collaborative workshops. Emlang complements these practices by letting you maintain models as code—useful for documenting existing systems, writing normalized specs, or when text-based workflows fit better. See the <a href="spec.html" style="color: var(--violet-6); font-weight: 500;">language specification</a> for the full syntax.</p>
+        </div>
+    </section>
+
+    <section id="examples" style="background: var(--gray-0);">
+        <div class="container">
+            <h2>Examples</h2>
+            <div class="carousel">
+                <div class="carousel-item active">
+                    <div class="carousel-title">User Registration with Test <a class="open-in-editor" href="#">Try it live</a></div>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">User registration:</span>
+    <span class="hljs-attr">steps:</span>
+      - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer / Registration form</span>     <span class="hljs-comment"># trigger on the Customer swimlane</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">Register user</span>                    <span class="hljs-comment"># command</span>
+        <span class="hljs-attr">props:</span>                              <span class="hljs-comment"># free-form properties</span>
+          <span class="hljs-attr">email:</span> <span class="hljs-string">string</span>
+          <span class="hljs-attr">password:</span> <span class="hljs-string">string</span>
+      - <span class="hljs-attr">e:</span> <span class="hljs-string">User / User registered</span>           <span class="hljs-comment"># event on the User swimlane</span>
+        <span class="hljs-attr">props:</span>
+          <span class="hljs-attr">userId:</span> <span class="hljs-string">uuid</span>
+          <span class="hljs-attr">email:</span> <span class="hljs-string">string</span>
+          <span class="hljs-attr">registeredAt:</span> <span class="hljs-string">datetime</span>
+      - <span class="hljs-attr">v:</span> <span class="hljs-string">User profile</span>                     <span class="hljs-comment"># view (read model)</span>
+    <span class="hljs-attr">tests:</span>
+      <span class="hljs-attr">Email must be unique:</span>                 <span class="hljs-comment"># Given-When-Then test</span>
+        <span class="hljs-attr">given:</span>
+          - <span class="hljs-attr">e:</span> <span class="hljs-string">User / User registered</span>
+            <span class="hljs-attr">props:</span>
+              <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+        <span class="hljs-attr">when:</span>
+          - <span class="hljs-attr">c:</span> <span class="hljs-string">Register user</span>
+            <span class="hljs-attr">props:</span>
+              <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+        <span class="hljs-attr">then:</span>
+          - <span class="hljs-attr">x:</span> <span class="hljs-string">Email already in use</span>         <span class="hljs-comment"># exception</span></code></pre>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class="carousel-title">Invoice Generation <a class="open-in-editor" href="#">Try it live</a></div>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">Invoice generation:</span>          <span class="hljs-comment"># processor pattern (direct form, no tests)</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Shipping / Order shipped</span>
+    - <span class="hljs-attr">v:</span> <span class="hljs-string">Pending invoices</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Invoice generation process</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">Generate invoice</span>
+      <span class="hljs-attr">props:</span>
+        <span class="hljs-attr">orderId:</span> <span class="hljs-string">uuid</span>
+        <span class="hljs-attr">customerId:</span> <span class="hljs-string">uuid</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Billing / Invoice generated</span>
+      <span class="hljs-attr">props:</span>
+        <span class="hljs-attr">invoiceId:</span> <span class="hljs-string">uuid</span>
+        <span class="hljs-attr">amount:</span> <span class="hljs-string">decimal</span>
+        <span class="hljs-attr">generatedAt:</span> <span class="hljs-string">datetime</span>
+    - <span class="hljs-attr">v:</span> <span class="hljs-string">Pending invoices</span></code></pre>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class="carousel-title">Exploratory Brainstorming - Order Flow <a class="open-in-editor" href="#">Try it live</a></div>
+                    <div class="code-wrapper">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">Order flow:</span>              <span class="hljs-comment"># just events, no commands yet</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Order placed</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Payment received</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Items reserved</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Shipment scheduled</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Order shipped</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Order delivered</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Feedback requested</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Order completed</span></code></pre>
+                    </div>
+                </div>
+
+                <div class="carousel-nav">
+                    <button onclick="changeSlide(-1)">Previous</button>
+                    <button onclick="changeSlide(1)">Next</button>
+                </div>
+                <div class="carousel-indicators">
+                    <span class="indicator active" onclick="goToSlide(0)"></span>
+                    <span class="indicator" onclick="goToSlide(1)"></span>
+                    <span class="indicator" onclick="goToSlide(2)"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="getting-started">
+        <div class="container">
+            <h2>Getting Started</h2>
+            <p>Install with <a href="https://go.dev/doc/install" style="color: var(--violet-6);">Go</a>:</p>
+            <div class="install-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <div class="install-box">
+go install github.com/emlang-project/emlang@latest
+                </div>
+            </div>
+            <p>Or download a precompiled binary from the <a href="https://github.com/emlang-project/emlang/releases" style="color: var(--violet-6);">releases page</a>.</p>
+            <p>Generate your first diagram:</p>
+            <div class="install-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <div class="install-box">
+emlang diagram model.yaml -o diagram.html
+                </div>
+            </div>
+            <p>See the <a href="cli.html" style="color: var(--violet-6);">CLI Reference</a> for the full list of commands and options.</p>
+        </div>
+    </section>
+
+    <section id="use-cases" style="background: var(--gray-0);">
+        <div class="container">
+            <h2>Use Cases</h2>
+            <ul class="use-cases">
+                <li>Document existing systems</li>
+                <li>Normalize issue specifications</li>
+                <li>Maintain living architecture documentation</li>
+                <li>Preserve workshop outcomes in version control</li>
+                <li>Share models with distributed teams</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p><strong>Emlang</strong> - Event Modeling Language</p>
+            <p><a href="https://github.com/emlang-project">GitHub: emlang-project</a></p>
+            <p>MIT License</p>
+            <div class="badges">
+                <a href="https://github.com/emlang-project/emlang"><img src="https://img.shields.io/github/v/release/emlang-project/emlang?label=emlang" alt="emlang release"></a>
+                <a href="https://github.com/emlang-project/spec"><img src="https://img.shields.io/github/v/release/emlang-project/spec?label=spec" alt="spec release"></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+        const indicators = document.querySelectorAll('.indicator');
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+
+            currentSlide = (n + slides.length) % slides.length;
+
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function goToSlide(n) {
+            showSlide(n);
+        }
+
+        // Copy button
+        function copyCode(btn) {
+            const wrapper = btn.parentElement;
+            const codeEl = wrapper.querySelector('code') || wrapper.querySelector('.install-box');
+            const text = codeEl.textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        // Show nav logo when header is scrolled out of view
+        const nav = document.querySelector('nav');
+        const header = document.querySelector('header');
+        const observer = new IntersectionObserver(([entry]) => {
+            nav.classList.toggle('scrolled', !entry.isIntersecting);
+        }, { threshold: 0, rootMargin: '-86px 0px 0px 0px' });
+        observer.observe(header);
+
+        // Set "Try it live" links
+        document.querySelectorAll('.carousel-item').forEach(item => {
+            const code = item.querySelector('code');
+            const link = item.querySelector('.open-in-editor');
+            if (code && link) {
+                link.href = 'repl.html?s=' + encodeURIComponent(code.textContent);
+                link.target = '_blank';
+            }
+        });
+
+        // Keyboard navigation for carousel
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeSlide(1);
+            }
+        });
+    </script>
+</body>
+</html>

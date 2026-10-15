@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specification - Emlang</title>
+    <meta name="description" content="Language specification for Emlang - Event Modeling in YAML.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="canonical" href="https://emlang-project.github.io/spec.html">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="index.html" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a>
+            <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html#getting-started">Getting Started</a></li>
+                <li><a href="spec.html">Specification</a></li>
+                <li><a href="cli.html">CLI Reference</a></li>
+                <li><a href="repl.html" target="_blank">Try Emlang</a></li>
+                <li><a href="https://github.com/emlang-project" target="_blank" aria-label="GitHub" class="nav-github"><svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Specification</h1>
+            <p>Emlang language specification v1.0.0. See also the <a href="https://github.com/emlang-project/spec/blob/main/SPEC.md">SPEC.md</a> and <a href="https://github.com/emlang-project/spec/blob/main/schema.json">schema.json</a> on GitHub.</p>
+        </div>
+
+        <div class="content-layout">
+        <div class="content-main">
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>Emlang is a YAML-based DSL for describing systems with Event Modeling patterns.</p>
+            <ul class="rules">
+                <li>An Emlang file must be a valid YAML file</li>
+                <li>Each YAML document must contain a <code>slices</code> top-level key</li>
+                <li><code>slices</code> may be empty</li>
+                <li>A file may contain multiple YAML documents separated by <code>---</code></li>
+                <li>The root object must not contain properties other than <code>slices</code></li>
+            </ul>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">SliceName:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Swimlane/TriggerName</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">DoSomething</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">SomethingDone</span></code></pre>
+            </div>
+        </section>
+
+        <section id="elements">
+            <h2>Elements</h2>
+            <p>Emlang defines 5 element types, each with multiple prefix forms:</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Short</th>
+                            <th>Acronym</th>
+                            <th>Long</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Trigger</td>
+                            <td><code>t:</code></td>
+                            <td><code>trg:</code></td>
+                            <td><code>trigger:</code></td>
+                        </tr>
+                        <tr>
+                            <td>Command</td>
+                            <td><code>c:</code></td>
+                            <td><code>cmd:</code></td>
+                            <td><code>command:</code></td>
+                        </tr>
+                        <tr>
+                            <td>Event</td>
+                            <td><code>e:</code></td>
+                            <td><code>evt:</code></td>
+                            <td><code>event:</code></td>
+                        </tr>
+                        <tr>
+                            <td>Exception</td>
+                            <td><code>x:</code></td>
+                            <td><code>err:</code></td>
+                            <td><code>exception:</code></td>
+                        </tr>
+                        <tr>
+                            <td>View</td>
+                            <td><code>v:</code></td>
+                            <td>—</td>
+                            <td><code>view:</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="rules">
+                <li>All prefix forms of a given type are semantically equivalent</li>
+                <li>An element must contain exactly one type key</li>
+                <li>An element may contain a <code>props</code> key</li>
+                <li>An element must not contain keys other than one type key and <code>props</code></li>
+            </ul>
+
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Valid</span>
+- <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+- <span class="hljs-attr">e:</span> <span class="hljs-string">UserRegistered</span>
+
+<span class="hljs-comment"># Invalid: two type keys in the same item</span>
+- <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+  <span class="hljs-attr">e:</span> <span class="hljs-string">UserRegistered</span></code></pre>
+            </div>
+
+            <h3 id="naming">Naming</h3>
+            <ul class="rules">
+                <li>Element names are free-form text</li>
+                <li>Names must not be empty</li>
+                <li>Names must not end with <code>/</code></li>
+                <li>Names may contain spaces, accents, and special characters</li>
+            </ul>
+
+            <h3 id="swimlanes">Swimlanes</h3>
+            <p>Swimlanes are optional. A swimlane is specified as a prefix separated by <code>/</code> before the element name.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>- <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/RegistrationForm</span>   <span class="hljs-comment"># Swimlane: Customer</span>
+- <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>         <span class="hljs-comment"># Swimlane: User</span>
+- <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>                <span class="hljs-comment"># No swimlane</span></code></pre>
+            </div>
+
+            <h3 id="properties">Properties</h3>
+            <p>Properties are optional and defined under a <code>props</code> key. The structure of <code>props</code> is free-form — consuming tools decide how to interpret them.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>- <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+  <span class="hljs-attr">props:</span>
+    <span class="hljs-attr">email:</span> <span class="hljs-string">string</span>
+    <span class="hljs-attr">password:</span> <span class="hljs-string">string</span></code></pre>
+            </div>
+        </section>
+
+        <section id="slices">
+            <h2>Slices</h2>
+            <p>A slice is a named sequence of elements representing a business scenario. A slice may be empty.</p>
+
+            <h3 id="direct-form">Direct Form</h3>
+            <p>The direct form is a list of elements. It should be used when a slice has no attached tests.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">UserRegistration:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/RegistrationForm</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+    - <span class="hljs-attr">v:</span> <span class="hljs-string">UserProfile</span></code></pre>
+            </div>
+
+            <h3 id="extended-form">Extended Form</h3>
+            <p>The extended form is an object with <code>steps</code> and optionally <code>tests</code>. Use it when a slice has tests.</p>
+            <ul class="rules">
+                <li><code>steps</code> is required but may be empty</li>
+                <li><code>tests</code> is optional and may be empty</li>
+                <li>The extended form must not contain properties other than <code>steps</code> and <code>tests</code></li>
+            </ul>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">UserRegistration:</span>
+    <span class="hljs-attr">steps:</span>
+      - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/RegistrationForm</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+      - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+    <span class="hljs-attr">tests:</span>
+      <span class="hljs-attr">EmailMustBeUnique:</span>
+        <span class="hljs-attr">given:</span>
+          - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+            <span class="hljs-attr">props:</span>
+              <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+        <span class="hljs-attr">when:</span>
+          - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+            <span class="hljs-attr">props:</span>
+              <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+        <span class="hljs-attr">then:</span>
+          - <span class="hljs-attr">x:</span> <span class="hljs-string">EmailAlreadyInUse</span></code></pre>
+            </div>
+
+            <h3 id="multiple-slices">Multiple Slices</h3>
+            <p>Multiple slices may be defined in the same document. Both direct and extended forms may coexist.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">UserRegistration:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/RegistrationForm</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+
+  <span class="hljs-attr">UserLogin:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/LoginForm</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">AuthenticateUser</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserAuthenticated</span>
+    - <span class="hljs-attr">v:</span> <span class="hljs-string">Dashboard</span></code></pre>
+            </div>
+        </section>
+
+        <section id="tests">
+            <h2>Tests</h2>
+            <p>Tests are defined inside a slice using the extended form. Each test follows a Given-When-Then structure.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Required</th>
+                            <th>Allowed element types</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>given</code></td>
+                            <td>No</td>
+                            <td>Events (<code>e:</code>), Views (<code>v:</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>when</code></td>
+                            <td>No</td>
+                            <td>Commands (<code>c:</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>then</code></td>
+                            <td>No</td>
+                            <td>Events (<code>e:</code>), Views (<code>v:</code>), Exceptions (<code>x:</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="rules">
+                <li><code>given</code>, <code>when</code>, and <code>then</code> are all optional and may be empty</li>
+                <li>A test may be empty</li>
+                <li>A test must not contain properties other than <code>given</code>, <code>when</code>, and <code>then</code></li>
+                <li>A slice may contain multiple named tests</li>
+            </ul>
+
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">tests:</span>
+  <span class="hljs-attr">EmailMustBeUnique:</span>
+    <span class="hljs-attr">given:</span>
+      - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+        <span class="hljs-attr">props:</span>
+          <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+    <span class="hljs-attr">when:</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+        <span class="hljs-attr">props:</span>
+          <span class="hljs-attr">email:</span> <span class="hljs-string">joe@example.com</span>
+    <span class="hljs-attr">then:</span>
+      - <span class="hljs-attr">x:</span> <span class="hljs-string">EmailAlreadyInUse</span>
+
+  <span class="hljs-attr">PasswordMustBeStrong:</span>
+    <span class="hljs-attr">when:</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+        <span class="hljs-attr">props:</span>
+          <span class="hljs-attr">password:</span> <span class="hljs-string">"123"</span>
+    <span class="hljs-attr">then:</span>
+      - <span class="hljs-attr">x:</span> <span class="hljs-string">PasswordTooWeak</span>
+
+  <span class="hljs-attr">TodoCompleteRegistrationFlow:</span></code></pre>
+            </div>
+        </section>
+
+        <section id="documents">
+            <h2>Document Structure</h2>
+            <p>A file may contain one or more YAML documents separated by <code>---</code>. Each document must independently conform to this specification.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-string">---</span>
+<span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">UserRegistration:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/RegistrationForm</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">RegisterUser</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserRegistered</span>
+
+<span class="hljs-string">---</span>
+<span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">UserDeletion:</span>
+    <span class="hljs-attr">steps:</span>
+      - <span class="hljs-attr">t:</span> <span class="hljs-string">Admin/UserManagement</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">DeleteUser</span>
+      - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserDeleted</span>
+    <span class="hljs-attr">tests:</span>
+      <span class="hljs-attr">CannotDeleteActiveUser:</span>
+        <span class="hljs-attr">given:</span>
+          - <span class="hljs-attr">e:</span> <span class="hljs-string">User/UserAuthenticated</span>
+        <span class="hljs-attr">when:</span>
+          - <span class="hljs-attr">c:</span> <span class="hljs-string">DeleteUser</span>
+        <span class="hljs-attr">then:</span>
+          - <span class="hljs-attr">x:</span> <span class="hljs-string">UserCurrentlyActive</span></code></pre>
+            </div>
+        </section>
+
+        <section id="comments">
+            <h2>Comments</h2>
+            <p>Standard YAML comments (<code>#</code>) may be used anywhere.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-attr">OrderPlacement:</span>
+    - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/ProductPage</span>    <span class="hljs-comment"># User clicks "Buy Now"</span>
+    - <span class="hljs-attr">c:</span> <span class="hljs-string">PlaceOrder</span>              <span class="hljs-comment"># Validates inventory</span>
+    - <span class="hljs-attr">e:</span> <span class="hljs-string">Order/OrderPlaced</span>       <span class="hljs-comment"># Core domain event</span></code></pre>
+            </div>
+        </section>
+
+        </div><!-- .content-main -->
+        <aside class="toc-sidebar">
+            <div class="toc">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#elements">Elements</a></li>
+                    <li><a href="#slices">Slices</a></li>
+                    <li><a href="#tests">Tests</a></li>
+                    <li><a href="#documents">Document Structure</a></li>
+                    <li><a href="#comments">Comments</a></li>
+                </ul>
+            </div>
+        </aside>
+        </div><!-- .content-layout -->
+    </div>
+
+    <footer>
+        <div class="container">
+            <p><strong>Emlang</strong> - Event Modeling Language</p>
+            <p><a href="https://github.com/emlang-project">GitHub: emlang-project</a></p>
+            <p>MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(btn) {
+            const wrapper = btn.parentElement;
+            const codeEl = wrapper.querySelector('code');
+            const text = codeEl.textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emlang Editor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-color/1.9.1/open-color.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldgutter.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldgutter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/indent-fold.min.js"></script>
+<script src="wasm_exec.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #212529;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+}
+
+header img {
+  height: 1.4rem;
+  width: auto;
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #212529;
+}
+
+header .actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+header button {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #7048e8;
+  border-radius: 4px;
+  background: #7048e8;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+header button:hover { background: #5f3dc4; border-color: #5f3dc4; }
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-pane {
+  width: 40%;
+  min-width: 150px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.resize-handle {
+  width: 5px;
+  cursor: col-resize;
+  background: #dee2e6;
+  flex-shrink: 0;
+}
+
+.resize-handle:hover, .resize-handle.active {
+  background: #7048e8;
+}
+
+.preview-pane {
+  flex: 1;
+  min-width: 150px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-pane .CodeMirror {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.editor-pane .CodeMirror-gutters {
+  background: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+}
+
+.editor-pane .CodeMirror-linenumber {
+  color: #adb5bd;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  gap: 0.3rem;
+}
+
+.preview-header button {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  background: #f1f3f5;
+  color: #495057;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.preview-header button:hover { background: #dee2e6; }
+
+.preview-header span {
+  font-size: 0.7rem;
+  color: #adb5bd;
+  min-width: 3em;
+  text-align: center;
+}
+
+.preview-pane iframe {
+  width: 100%;
+  flex: 1;
+  border: none;
+  display: block;
+}
+
+.console {
+  flex-shrink: 0;
+  height: 150px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+}
+
+.console-header span {
+  font-size: 0.75rem;
+  color: #495057;
+}
+
+.console-header .badge {
+  margin-left: 0.5rem;
+  padding: 0 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.console-header .badge-error {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+.console-header .badge-warning {
+  background: #f59f00;
+  color: #fff;
+}
+
+.console-header .badge-ok {
+  background: #51cf66;
+  color: #fff;
+}
+
+.console-header button {
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  background: #f1f3f5;
+  color: #495057;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.console-header button:hover { background: #dee2e6; }
+
+.console-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.console-body:empty::after {
+  content: "No issues";
+  color: #adb5bd;
+}
+
+.msg-error { color: #c92a2a; }
+.msg-warning { color: #e67700; }
+.msg-info { color: #7048e8; }
+
+.cm-em-comment { color: var(--oc-gray-4); }
+.cm-em-key { color: var(--oc-gray-9); }
+.cm-em-name { color: var(--oc-gray-9); font-weight: bold; }
+.cm-em-trigger { color: var(--oc-gray-6); font-weight: bold; }
+.cm-em-command { color: var(--oc-blue-8); font-weight: bold; }
+.cm-em-event { color: var(--oc-yellow-8); font-weight: bold; }
+.cm-em-view { color: var(--oc-green-8); font-weight: bold; }
+.cm-em-exception { color: var(--oc-red-8); font-weight: bold; }
+.cm-em-propkey { color: var(--oc-gray-9); font-size: 0.75em; }
+.cm-em-propval { color: var(--oc-gray-6); font-size: 0.75em; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://emlang-project.github.io/logo.svg" alt="emlang">
+  <h1>Emlang Editor</h1>
+  <div class="actions">
+    <button id="btn-fmt" title="Format source (Ctrl+Shift+F)">Format</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="editor-pane">
+    <textarea id="editor"></textarea>
+  </div>
+  <div class="resize-handle" id="resize-handle"></div>
+  <div class="preview-pane">
+    <div class="preview-header">
+      <button id="btn-zoom-out" title="Zoom out">-</button>
+      <span id="zoom-level">100%</span>
+      <button id="btn-zoom-in" title="Zoom in">+</button>
+      <button id="btn-zoom-reset" title="Reset zoom">Reset</button>
+    </div>
+    <iframe id="preview" sandbox="allow-same-origin"></iframe>
+  </div>
+</div>
+
+<div class="console">
+  <div class="console-header">
+    <span>Console</span>
+    <span id="badge"></span>
+    <button id="btn-clear">Clear</button>
+  </div>
+  <div class="console-body" id="console-body"></div>
+</div>
+
+<script>
+CodeMirror.defineMode("emlang", function() {
+  var stepKeys = {
+    c: "em-command", cmd: "em-command", command: "em-command",
+    e: "em-event", evt: "em-event", event: "em-event",
+    v: "em-view", view: "em-view",
+    t: "em-trigger", trg: "em-trigger", trigger: "em-trigger",
+    x: "em-exception", err: "em-exception", exception: "em-exception"
+  };
+  var stepKeyPattern = /^(command|exception|trigger|event|view|cmd|evt|trg|err|c|e|v|x|t):\s*/;
+  var structKeyPattern = /^(slices|steps|tests|props|given|when|then):/;
+
+  return {
+    startState: function() {
+      return { afterDash: false, readingValue: false, valueType: null };
+    },
+    copyState: function(s) {
+      return { afterDash: s.afterDash, readingValue: s.readingValue, valueType: s.valueType };
+    },
+    token: function(stream, state) {
+      if (stream.sol()) {
+        state.afterDash = false;
+        state.readingValue = false;
+        state.valueType = null;
+      }
+      if (stream.eatSpace()) return null;
+      if (stream.peek() === "#") { stream.skipToEnd(); return "em-comment"; }
+      if (state.readingValue) {
+        if (stream.match(/^[^#]+/)) { var t = state.valueType; state.readingValue = false; return t; }
+        state.readingValue = false;
+      }
+      if (state.afterDash) {
+        state.afterDash = false;
+        var m = stream.match(stepKeyPattern);
+        if (m) { state.valueType = stepKeys[m[1]]; state.readingValue = true; return "em-key"; }
+        stream.match(/^[^#]*/);
+        return null;
+      }
+      if (stream.match(/^-\s/)) { state.afterDash = true; return null; }
+      if (stream.match(/^props:/)) return "em-propkey";
+      if (stream.match(structKeyPattern)) return "em-key";
+      if (stream.match(/^[^:#]+:/)) {
+        var rest = stream.string.slice(stream.pos);
+        if (/^\s*(#.*)?$/.test(rest)) return "em-name";
+        state.readingValue = true;
+        state.valueType = "em-propval";
+        return "em-propkey";
+      }
+      stream.next();
+      return null;
+    },
+  };
+});
+
+var cm = CodeMirror.fromTextArea(document.getElementById("editor"), {
+  mode: "emlang",
+  lineNumbers: true,
+  tabSize: 2,
+  indentWithTabs: false,
+  foldGutter: { rangeFinder: CodeMirror.fold.indent },
+  gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+  extraKeys: {
+    "Ctrl-Shift-F": function() { formatSource(); },
+    "Tab": function(cm) { cm.replaceSelection("  "); }
+  }
+});
+
+var preview = document.getElementById("preview");
+var consoleBody = document.getElementById("console-body");
+var badge = document.getElementById("badge");
+var btnFmt = document.getElementById("btn-fmt");
+var btnClear = document.getElementById("btn-clear");
+var zoomLevel = document.getElementById("zoom-level");
+var btnZoomIn = document.getElementById("btn-zoom-in");
+var btnZoomOut = document.getElementById("btn-zoom-out");
+var btnZoomReset = document.getElementById("btn-zoom-reset");
+var debounceTimer = null;
+var zoom = 100;
+var backend = null;
+
+function clearConsole() {
+  consoleBody.innerHTML = "";
+  badge.textContent = "";
+  badge.className = "badge";
+}
+
+function appendMsg(cls, text) {
+  var div = document.createElement("div");
+  div.className = cls;
+  div.textContent = text;
+  consoleBody.appendChild(div);
+  consoleBody.scrollTop = consoleBody.scrollHeight;
+}
+
+function updateBadge(errors, warnings) {
+  if (errors > 0) {
+    badge.textContent = errors + " error" + (errors > 1 ? "s" : "");
+    if (warnings > 0) badge.textContent += ", " + warnings + " warning" + (warnings > 1 ? "s" : "");
+    badge.className = "badge badge-error";
+  } else if (warnings > 0) {
+    badge.textContent = warnings + " warning" + (warnings > 1 ? "s" : "");
+    badge.className = "badge badge-warning";
+  } else {
+    badge.textContent = "OK";
+    badge.className = "badge badge-ok";
+  }
+}
+
+function handleRenderResult(data) {
+  clearConsole();
+
+  if (data.error) {
+    appendMsg("msg-error", "Parse error: " + data.error);
+    updateBadge(1, 0);
+    return;
+  }
+
+  preview.srcdoc = data.html;
+
+  var errors = 0;
+  var warnings = 0;
+  var lint = data.lint;
+  if (lint && lint.length > 0) {
+    for (var i = 0; i < lint.length; i++) {
+      var issue = lint[i];
+      var prefix = issue.line > 0 ? issue.line + ":" + issue.column + ": " : "";
+      if (issue.severity === "error") {
+        appendMsg("msg-error", prefix + issue.message + " [" + issue.rule + "]");
+        errors++;
+      } else {
+        appendMsg("msg-warning", prefix + issue.message + " [" + issue.rule + "]");
+        warnings++;
+      }
+    }
+  }
+  updateBadge(errors, warnings);
+}
+
+function render() {
+  if (!backend) return;
+  var src = cm.getValue();
+  if (!src.trim()) {
+    preview.srcdoc = "";
+    clearConsole();
+    return;
+  }
+  backend.render(src).then(handleRenderResult);
+}
+
+function scheduleRender() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(render, 300);
+}
+
+function formatSource() {
+  if (!backend) return;
+  backend.format(cm.getValue()).then(function(data) {
+    if (data.error) {
+      clearConsole();
+      appendMsg("msg-error", "Format error: " + data.error);
+      updateBadge(1, 0);
+    } else {
+      cm.setValue(data.yaml);
+      localStorage.setItem("emlang-repl-src", data.yaml);
+      render();
+    }
+  });
+}
+
+cm.on("change", function() {
+  localStorage.setItem("emlang-repl-src", cm.getValue());
+  scheduleRender();
+});
+
+btnFmt.addEventListener("click", formatSource);
+btnClear.addEventListener("click", clearConsole);
+
+function applyZoom() {
+  zoomLevel.textContent = zoom + "%";
+  try {
+    var doc = preview.contentDocument;
+    if (doc && doc.body) {
+      doc.body.style.transformOrigin = "0 0";
+      doc.body.style.transform = "scale(" + (zoom / 100) + ")";
+      doc.body.style.width = (10000 / zoom) + "%";
+    }
+  } catch(e) {}
+}
+
+function setZoom(v) {
+  zoom = Math.max(25, Math.min(200, v));
+  applyZoom();
+}
+
+btnZoomIn.addEventListener("click", function() { setZoom(zoom + 10); });
+btnZoomOut.addEventListener("click", function() { setZoom(zoom - 10); });
+btnZoomReset.addEventListener("click", function() { setZoom(100); });
+preview.addEventListener("load", applyZoom);
+
+var resizeHandle = document.getElementById("resize-handle");
+var editorPane = document.querySelector(".editor-pane");
+var isResizing = false;
+
+resizeHandle.addEventListener("mousedown", function(e) {
+  e.preventDefault();
+  isResizing = true;
+  resizeHandle.classList.add("active");
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  preview.style.pointerEvents = "none";
+});
+
+document.addEventListener("mousemove", function(e) {
+  if (!isResizing) return;
+  var container = document.querySelector(".main");
+  var rect = container.getBoundingClientRect();
+  var newWidth = e.clientX - rect.left;
+  var minW = 150;
+  var maxW = rect.width - 150;
+  editorPane.style.width = Math.max(minW, Math.min(maxW, newWidth)) + "px";
+});
+
+document.addEventListener("mouseup", function() {
+  if (!isResizing) return;
+  isResizing = false;
+  resizeHandle.classList.remove("active");
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+  preview.style.pointerEvents = "";
+});
+
+appendMsg("msg-info", "Loading WASM...");
+
+window.onEmlangReady = function() {
+  backend = {
+    render: function(src) { return Promise.resolve(emlangRender(src)); },
+    format: function(src) { return Promise.resolve(emlangFormat(src)); }
+  };
+  clearConsole();
+  var params = new URLSearchParams(window.location.search);
+  var s = params.get("s");
+  cm.setValue(s ? s : (localStorage.getItem("emlang-repl-src") || "slices:\n"));
+  render();
+};
+
+var go = new Go();
+WebAssembly.instantiateStreaming(fetch("emlang.wasm"), go.importObject).then(function(result) {
+  go.run(result.instance);
+});
+</script>
+</body>
+</html>

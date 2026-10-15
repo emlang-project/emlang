@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Reference - Emlang</title>
+    <meta name="description" content="Complete CLI reference for Emlang - Event Modeling Language toolchain.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="canonical" href="https://emlang-project.github.io/cli.html">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="index.html" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a>
+            <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html#getting-started">Getting Started</a></li>
+                <li><a href="spec.html">Specification</a></li>
+                <li><a href="cli.html">CLI Reference</a></li>
+                <li><a href="repl.html" target="_blank">Try Emlang</a></li>
+                <li><a href="https://github.com/emlang-project" target="_blank" aria-label="GitHub" class="nav-github"><svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>CLI Reference</h1>
+            <p>Complete reference for the <code>emlang</code> command-line tool.</p>
+        </div>
+
+        <div class="content-layout">
+        <div class="content-main">
+
+        <section id="installation">
+            <h2>Installation</h2>
+            <p>Install with <a href="https://go.dev/" style="color: var(--violet-6);">Go</a>:</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>go install github.com/emlang-project/emlang@latest</code></pre>
+            </div>
+            <p>Or download a precompiled binary from the <a href="https://github.com/emlang-project/emlang/releases" style="color: var(--violet-6);">releases page</a>.</p>
+        </section>
+
+        <section id="usage">
+            <h2>Usage</h2>
+            <pre><code>emlang &lt;command&gt; [flags] &lt;file&gt;</code></pre>
+            <p>Available commands:</p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code><a href="#init" style="color: var(--violet-6); text-decoration: none;">init</a></code></td>
+                            <td>Initialize a <code>.emlang.yaml</code> configuration file</td>
+                        </tr>
+                        <tr>
+                            <td><code><a href="#parse" style="color: var(--violet-6); text-decoration: none;">parse</a></code></td>
+                            <td>Parse and display YAML document structure</td>
+                        </tr>
+                        <tr>
+                            <td><code><a href="#lint" style="color: var(--violet-6); text-decoration: none;">lint</a></code></td>
+                            <td>Analyze a YAML file for issues and best practices</td>
+                        </tr>
+                        <tr>
+                            <td><code><a href="#fmt" style="color: var(--violet-6); text-decoration: none;">fmt</a></code></td>
+                            <td>Format a YAML source file</td>
+                        </tr>
+                        <tr>
+                            <td><code><a href="#diagram" style="color: var(--violet-6); text-decoration: none;">diagram</a></code></td>
+                            <td>Generate an HTML diagram</td>
+                        </tr>
+                        <tr>
+                            <td><code><a href="#version" style="color: var(--violet-6); text-decoration: none;">version</a></code></td>
+                            <td>Print version and specification information</td>
+                        </tr>
+                        <tr>
+                            <td><code>help</code></td>
+                            <td>Display help message</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="global-flags">
+            <h2>Global Flags</h2>
+
+            <h3><code>-c</code>, <code>--config</code></h3>
+            <p>Path to the configuration file. See <a href="#configuration" style="color: var(--violet-6);">Configuration Reference</a> for details on <code>.emlang.yaml</code>.</p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Flag</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>-c, --config</code></td>
+                            <td>string</td>
+                            <td><code>.emlang.yaml</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The configuration file is resolved in the following order:</p>
+            <ol>
+                <li>The <code>-c</code> / <code>--config</code> flag value</li>
+                <li>The <code>EMLANG_CONFIG</code> environment variable</li>
+                <li>A <code>.emlang.yaml</code> file in the current working directory</li>
+            </ol>
+            <p>If an explicit path (flag or environment variable) does not exist, the CLI returns an error. If the default path does not exist, an empty configuration is used.</p>
+        </section>
+
+        <section id="init">
+            <h2>emlang init</h2>
+            <p>Create a <code>.emlang.yaml</code> configuration file with default values in the current directory.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang init</code></pre>
+
+            <p>The command exits with an error if a <code>.emlang.yaml</code> file already exists in the current directory.</p>
+
+            <h3>Examples</h3>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Initialize a new config file</span>
+emlang init</code></pre>
+            </div>
+        </section>
+
+        <section id="parse">
+            <h2>emlang parse</h2>
+            <p>Parse and display the structure of a YAML document. Useful for inspecting slices, elements, and tests.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang parse &lt;file&gt;</code></pre>
+
+            <h3>Arguments</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Argument</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;file&gt;</code></td>
+                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Output</h3>
+            <p>Displays a summary of the document including the number of slices, and for each slice: its name, element count, element details (type, swimlane, name, properties), and attached tests.</p>
+
+            <h3>Examples</h3>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Parse a file</span>
+emlang parse model.yaml
+
+<span class="hljs-comment"># Parse from stdin</span>
+cat model.yaml | emlang parse -</code></pre>
+            </div>
+        </section>
+
+        <section id="lint">
+            <h2>emlang lint</h2>
+            <p>Analyze a YAML file for issues and best practices. Returns a list of warnings and errors with file location.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang lint &lt;file&gt;</code></pre>
+
+            <h3>Arguments</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Argument</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;file&gt;</code></td>
+                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Output</h3>
+            <p>If no issues are found:</p>
+            <pre><code>model.yaml: OK (no issues found)</code></pre>
+            <p>If issues are found, they are reported with file location, severity, and rule name:</p>
+            <pre><code>model.yaml:25:5: warning: command should be followed by an event or exception [command-without-event]
+model.yaml:30:5: warning: exception without preceding command [orphan-exception]
+
+2 warnings</code></pre>
+            <p>Rules can be ignored via the <a href="config.html#lint" style="color: var(--violet-6);">lint configuration</a>.</p>
+
+            <h3>Linting Rules</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rule</th>
+                            <th>Severity</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>command-without-event</code></td>
+                            <td style="color: #e67700; font-weight: 600;">warning</td>
+                            <td>Command not followed by event or exception</td>
+                        </tr>
+                        <tr>
+                            <td><code>orphan-exception</code></td>
+                            <td style="color: #e67700; font-weight: 600;">warning</td>
+                            <td>Exception without preceding command</td>
+                        </tr>
+                        <tr>
+                            <td><code>slice-missing-event</code></td>
+                            <td style="color: #e67700; font-weight: 600;">warning</td>
+                            <td>Slice without events</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Examples</h3>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Lint a file</span>
+emlang lint model.yaml
+
+<span class="hljs-comment"># Lint from stdin</span>
+cat model.yaml | emlang lint -
+
+<span class="hljs-comment"># Lint with a custom config</span>
+emlang -c custom-config.yaml lint model.yaml</code></pre>
+            </div>
+        </section>
+
+        <section id="fmt">
+            <h2>emlang fmt</h2>
+            <p>Format a YAML source file to canonical output. Sorts element properties and test names deterministically.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang fmt [flags] &lt;file&gt;</code></pre>
+
+            <h3>Arguments</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Argument</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;file&gt;</code></td>
+                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Flags</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Flag</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>-w, --write</code></td>
+                            <td>bool</td>
+                            <td><code>false</code></td>
+                            <td>Write result to source file instead of stdout (cannot be used with stdin)</td>
+                        </tr>
+                        <tr>
+                            <td><code>--keys</code></td>
+                            <td>string</td>
+                            <td><code>short</code></td>
+                            <td>Key style: <code>long</code> (<code>trigger</code>, <code>command</code>, <code>event</code>, <code>exception</code>, <code>view</code>) or <code>short</code> (<code>t</code>, <code>c</code>, <code>e</code>, <code>x</code>, <code>v</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>The <code>--keys</code> flag priority is: flag &gt; <a href="config.html#fmt" style="color: var(--violet-6);">config</a> &gt; default (<code>short</code>).</p>
+
+            <h3>Examples</h3>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Format and print to stdout</span>
+emlang fmt model.yaml
+
+<span class="hljs-comment"># Format in-place</span>
+emlang fmt -w model.yaml
+
+<span class="hljs-comment"># Format with long keys</span>
+emlang fmt --keys long model.yaml
+
+<span class="hljs-comment"># Format from stdin</span>
+cat model.yaml | emlang fmt -</code></pre>
+            </div>
+        </section>
+
+        <section id="diagram">
+            <h2>emlang diagram</h2>
+            <p>Generate an HTML diagram from a YAML file. The diagram can be written to a file, printed to stdout, or served with live reload.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang diagram [flags] &lt;file&gt;</code></pre>
+
+            <h3>Arguments</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Argument</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;file&gt;</code></td>
+                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Flags</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Flag</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>-o, --output</code></td>
+                            <td>string</td>
+                            <td>stdout</td>
+                            <td>Output HTML file path</td>
+                        </tr>
+                        <tr>
+                            <td><code>--serve</code></td>
+                            <td>bool</td>
+                            <td><code>false</code></td>
+                            <td>Start a live-reload HTTP server with file watching</td>
+                        </tr>
+                        <tr>
+                            <td><code>--address</code></td>
+                            <td>string</td>
+                            <td><code>127.0.0.1</code></td>
+                            <td>Listen address for the live-reload server (used with <code>--serve</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>--port</code></td>
+                            <td>int</td>
+                            <td><code>8274</code></td>
+                            <td>Port for the live-reload server (used with <code>--serve</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Output modes</h3>
+            <p>By default, the generated HTML is printed to stdout. Use <code>-o</code> to write to a file instead, or <code>--serve</code> to start a live-reload development server.</p>
+            <p>The <code>--serve</code> flag watches the input file for changes, regenerates the diagram automatically, and opens your browser. It cannot be combined with <code>-o</code> or stdin (<code>-</code>).</p>
+            <p>Diagram appearance can be customized via the <a href="#config-diagram" style="color: var(--violet-6);">diagram configuration</a>.</p>
+
+            <h3>Examples</h3>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Generate and save to file</span>
+emlang diagram -o diagram.html model.yaml
+
+<span class="hljs-comment"># Output to stdout</span>
+emlang diagram model.yaml
+
+<span class="hljs-comment"># Live-reload server on default port (8274)</span>
+emlang diagram --serve model.yaml
+
+<span class="hljs-comment"># Live-reload server on custom port</span>
+emlang diagram --serve --port 3000 model.yaml
+
+<span class="hljs-comment"># Pipe from stdin</span>
+cat model.yaml | emlang diagram -o diagram.html -</code></pre>
+            </div>
+        </section>
+
+        <section id="version">
+            <h2>emlang version</h2>
+            <p>Print the CLI version and the specification version it implements.</p>
+
+            <h3>Usage</h3>
+            <pre><code>emlang version</code></pre>
+
+            <h3>Output</h3>
+            <pre><code>emlang version 0.0.0 (spec 1.0.0)</code></pre>
+        </section>
+
+        <section id="stdin">
+            <h2>Stdin Support</h2>
+            <p>All content-consuming commands accept <code>-</code> as the file argument to read from stdin:</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>emlang parse -
+emlang lint -
+emlang fmt -
+emlang diagram -
+emlang diagram -o output.html -</code></pre>
+            </div>
+            <p>The <code>--serve</code> flag in the <code>diagram</code> command does not support stdin, since it needs to watch the file for changes.</p>
+        </section>
+
+        <section id="exit-codes">
+            <h2>Exit Codes</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>0</code></td>
+                            <td>Success</td>
+                        </tr>
+                        <tr>
+                            <td><code>1</code></td>
+                            <td>Error (missing argument, parse failure, lint errors, write failure, etc.)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>Configuration</h2>
+            <p>Emlang uses a <code>.emlang.yaml</code> file for project configuration. The CLI resolves the configuration file in the following order:</p>
+            <ol>
+                <li>The <code>-c</code> flag: <code>emlang -c path/to/config.yaml</code></li>
+                <li>The <code>EMLANG_CONFIG</code> environment variable</li>
+                <li>A <code>.emlang.yaml</code> file in the current working directory</li>
+            </ol>
+
+            <p>See the <a href="config.html" style="color: var(--violet-6);">Configuration Reference</a> for the full list of options.</p>
+        </section>
+
+        </div><!-- .content-main -->
+        <aside class="toc-sidebar">
+            <div class="toc">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#usage">Usage</a></li>
+                    <li><a href="#global-flags">Global Flags</a></li>
+                    <li><a href="#init">emlang init</a></li>
+                    <li><a href="#parse">emlang parse</a></li>
+                    <li><a href="#lint">emlang lint</a></li>
+                    <li><a href="#fmt">emlang fmt</a></li>
+                    <li><a href="#diagram">emlang diagram</a></li>
+                    <li><a href="#version">emlang version</a></li>
+                    <li><a href="#stdin">Stdin Support</a></li>
+                    <li><a href="#exit-codes">Exit Codes</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                </ul>
+            </div>
+        </aside>
+        </div><!-- .content-layout -->
+    </div>
+
+    <footer>
+        <div class="container">
+            <p><strong>Emlang</strong> - Event Modeling Language</p>
+            <p><a href="https://github.com/emlang-project">GitHub: emlang-project</a></p>
+            <p>MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(btn) {
+            const wrapper = btn.parentElement;
+            const codeEl = wrapper.querySelector('code');
+            const text = codeEl.textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

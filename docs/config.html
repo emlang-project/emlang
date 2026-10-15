@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Reference - Emlang</title>
+    <meta name="description" content="Configuration reference for Emlang - Event Modeling Language CLI tool.">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="canonical" href="https://emlang-project.github.io/config.html">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="index.html" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a>
+            <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html#getting-started">Getting Started</a></li>
+                <li><a href="spec.html">Specification</a></li>
+                <li><a href="cli.html">CLI Reference</a></li>
+                <li><a href="repl.html" target="_blank">Try Emlang</a></li>
+                <li><a href="https://github.com/emlang-project" target="_blank" aria-label="GitHub" class="nav-github"><svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Configuration Reference</h1>
+            <p>Complete reference for the <code>.emlang.yaml</code> configuration file.</p>
+        </div>
+
+        <div class="content-layout">
+        <div class="content-main">
+
+        <section id="config-file">
+            <h2>Configuration File</h2>
+            <p>Emlang uses a <code>.emlang.yaml</code> file for project configuration. The CLI resolves the configuration file in the following order:</p>
+            <ol>
+                <li>The <code>-c</code> flag: <code>emlang -c path/to/config.yaml</code></li>
+                <li>The <code>EMLANG_CONFIG</code> environment variable</li>
+                <li>A <code>.emlang.yaml</code> file in the current working directory</li>
+            </ol>
+        </section>
+
+        <section id="lint">
+            <h2>lint</h2>
+            <p>Configuration for the linter. Use the <code>ignore</code> list to disable specific rules.</p>
+
+            <h3>lint.ignore</h3>
+            <p><strong>Type:</strong> <code>array of strings</code> — list of rule names to ignore.</p>
+            <pre><code><span class="hljs-attr">lint:</span>
+  <span class="hljs-attr">ignore:</span>
+    - <span class="hljs-string">slice-missing-event</span>
+    - <span class="hljs-string">command-without-event</span></code></pre>
+
+            <h3>Available Rules</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rule</th>
+                            <th>Severity</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>command-without-event</code></td>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>Command not followed by event or exception</td>
+                        </tr>
+                        <tr>
+                            <td><code>orphan-exception</code></td>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>Exception without preceding command</td>
+                        </tr>
+                        <tr>
+                            <td><code>slice-missing-event</code></td>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>Slice without events</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="fmt">
+            <h2>fmt</h2>
+            <p>Configuration for the formatter.</p>
+
+            <h3>fmt.keys</h3>
+            <p><strong>Type:</strong> <code>string</code> — key style for formatted output. Options: <code>"long"</code> or <code>"short"</code>. Default: <code>"long"</code>.</p>
+            <ul class="plain" style="list-style: none; padding-left: 0; margin-bottom: 1rem;">
+                <li><code>long</code> — full type names: <code>trigger</code>, <code>command</code>, <code>event</code>, <code>exception</code>, <code>view</code></li>
+                <li><code>short</code> — abbreviated keys: <code>t</code>, <code>c</code>, <code>e</code>, <code>x</code>, <code>v</code></li>
+            </ul>
+            <pre><code><span class="hljs-attr">fmt:</span>
+  <span class="hljs-attr">keys:</span> <span class="hljs-string">long</span></code></pre>
+        </section>
+
+        <section id="diagram">
+            <h2>diagram</h2>
+            <p>Configuration for the generated diagram.</p>
+
+            <h3>diagram.serve</h3>
+            <p>Settings for the live-reload server started with <code>emlang diagram --serve</code>.</p>
+
+            <h3>diagram.serve.address</h3>
+            <p><strong>Type:</strong> <code>string</code> — listen address. Default: <code>"127.0.0.1"</code>.</p>
+
+            <h3>diagram.serve.port</h3>
+            <p><strong>Type:</strong> <code>int</code> — listen port. Default: <code>8274</code>.</p>
+            <pre><code><span class="hljs-attr">diagram:</span>
+  <span class="hljs-attr">serve:</span>
+    <span class="hljs-attr">address:</span> <span class="hljs-string">127.0.0.1</span>
+    <span class="hljs-attr">port:</span> <span class="hljs-number">8274</span></code></pre>
+
+            <h3>diagram.css</h3>
+            <p>Use the <code>css</code> map to override default CSS custom properties.</p>
+            <p><strong>Type:</strong> <code>map of string to string</code> — CSS variable name to value.</p>
+            <pre><code><span class="hljs-attr">diagram:</span>
+  <span class="hljs-attr">css:</span>
+    <span class="hljs-attr">--command-color:</span> <span class="hljs-string">"#dbe4ff"</span>
+    <span class="hljs-attr">--font-size-label:</span> <span class="hljs-string">"0.8em"</span></code></pre>
+
+            <h3>Available CSS Variables</h3>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="category-row"><td colspan="3">Colors</td></tr>
+                        <tr>
+                            <td><code>--text-color</code></td>
+                            <td><code>#212529</code></td>
+                            <td>Main text color</td>
+                        </tr>
+                        <tr>
+                            <td><code>--border-color</code></td>
+                            <td><code>#ced4da</code></td>
+                            <td>Border color</td>
+                        </tr>
+                        <tr>
+                            <td><code>--trigger-color</code></td>
+                            <td><code>#e9ecef</code></td>
+                            <td>Trigger background</td>
+                        </tr>
+                        <tr>
+                            <td><code>--command-color</code></td>
+                            <td><code>#a5d8ff</code></td>
+                            <td>Command background</td>
+                        </tr>
+                        <tr>
+                            <td><code>--event-color</code></td>
+                            <td><code>#ffd8a8</code></td>
+                            <td>Event background</td>
+                        </tr>
+                        <tr>
+                            <td><code>--exception-color</code></td>
+                            <td><code>#ffc9c9</code></td>
+                            <td>Exception background</td>
+                        </tr>
+                        <tr>
+                            <td><code>--view-color</code></td>
+                            <td><code>#b2f2bb</code></td>
+                            <td>View background</td>
+                        </tr>
+                        <tr class="category-row"><td colspan="3">Sizes</td></tr>
+                        <tr>
+                            <td><code>--item-border-radius</code></td>
+                            <td><code>0.5em</code></td>
+                            <td>Border radius</td>
+                        </tr>
+                        <tr class="category-row"><td colspan="3">Typography</td></tr>
+                        <tr>
+                            <td><code>--font-family-normal</code></td>
+                            <td><code>system-ui</code></td>
+                            <td>Normal font family</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-slicename</code></td>
+                            <td><code>2em</code></td>
+                            <td>Slice name font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-slicename</code></td>
+                            <td><code>normal</code></td>
+                            <td>Slice name font weight</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-swimlane</code></td>
+                            <td><code>1.5em</code></td>
+                            <td>Swimlane font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-swimlane</code></td>
+                            <td><code>normal</code></td>
+                            <td>Swimlane font weight</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-testname</code></td>
+                            <td><code>1em</code></td>
+                            <td>Test name font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-testname</code></td>
+                            <td><code>bold</code></td>
+                            <td>Test name font weight</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-label</code></td>
+                            <td><code>0.75em</code></td>
+                            <td>Label font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-label</code></td>
+                            <td><code>normal</code></td>
+                            <td>Label font weight</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-family-props</code></td>
+                            <td><code>monospace</code></td>
+                            <td>Props font family</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-props</code></td>
+                            <td><code>0.75em</code></td>
+                            <td>Props font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-props</code></td>
+                            <td><code>normal</code></td>
+                            <td>Props font weight</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="full-example">
+            <h2>Full Example</h2>
+            <p>A complete <code>.emlang.yaml</code> configuration file with all available options:</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Emlang configuration file</span>
+
+<span class="hljs-attr">lint:</span>
+  <span class="hljs-attr">ignore:</span>
+    - <span class="hljs-string">slice-missing-event</span>
+    - <span class="hljs-string">command-without-event</span>
+    - <span class="hljs-string">orphan-exception</span>
+
+<span class="hljs-attr">fmt:</span>
+  <span class="hljs-attr">keys:</span> <span class="hljs-string">long</span>
+
+<span class="hljs-attr">diagram:</span>
+  <span class="hljs-attr">serve:</span>
+    <span class="hljs-attr">address:</span> <span class="hljs-string">127.0.0.1</span>
+    <span class="hljs-attr">port:</span> <span class="hljs-number">8274</span>
+  <span class="hljs-attr">css:</span>
+    <span class="hljs-comment"># Colors</span>
+    <span class="hljs-attr">--text-color:</span> <span class="hljs-string">"#212529"</span>
+    <span class="hljs-attr">--border-color:</span> <span class="hljs-string">"#ced4da"</span>
+    <span class="hljs-attr">--trigger-color:</span> <span class="hljs-string">"#e9ecef"</span>
+    <span class="hljs-attr">--command-color:</span> <span class="hljs-string">"#a5d8ff"</span>
+    <span class="hljs-attr">--event-color:</span> <span class="hljs-string">"#ffd8a8"</span>
+    <span class="hljs-attr">--exception-color:</span> <span class="hljs-string">"#ffc9c9"</span>
+    <span class="hljs-attr">--view-color:</span> <span class="hljs-string">"#b2f2bb"</span>
+    <span class="hljs-comment"># Sizes</span>
+    <span class="hljs-attr">--item-border-radius:</span> <span class="hljs-string">"0.5em"</span>
+    <span class="hljs-comment"># Typography</span>
+    <span class="hljs-attr">--font-family-normal:</span> <span class="hljs-string">"system-ui"</span>
+    <span class="hljs-attr">--font-size-slicename:</span> <span class="hljs-string">"2em"</span>
+    <span class="hljs-attr">--font-weight-slicename:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--font-size-swimlane:</span> <span class="hljs-string">"1.5em"</span>
+    <span class="hljs-attr">--font-weight-swimlane:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--font-size-testname:</span> <span class="hljs-string">"1em"</span>
+    <span class="hljs-attr">--font-weight-testname:</span> <span class="hljs-string">"bold"</span>
+    <span class="hljs-attr">--font-size-label:</span> <span class="hljs-string">"0.75em"</span>
+    <span class="hljs-attr">--font-weight-label:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--font-family-props:</span> <span class="hljs-string">"monospace"</span>
+    <span class="hljs-attr">--font-size-props:</span> <span class="hljs-string">"0.75em"</span>
+    <span class="hljs-attr">--font-weight-props:</span> <span class="hljs-string">"normal"</span></code></pre>
+            </div>
+        </section>
+
+        </div><!-- .content-main -->
+        <aside class="toc-sidebar">
+            <div class="toc">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#config-file">Configuration File</a></li>
+                    <li><a href="#lint">lint</a></li>
+                    <li><a href="#fmt">fmt</a></li>
+                    <li><a href="#diagram">diagram</a></li>
+                    <li><a href="#full-example">Full Example</a></li>
+                </ul>
+            </div>
+        </aside>
+        </div><!-- .content-layout -->
+    </div>
+
+    <footer>
+        <div class="container">
+            <p><strong>Emlang</strong> - Event Modeling Language</p>
+            <p><a href="https://github.com/emlang-project">GitHub: emlang-project</a></p>
+            <p>MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(btn) {
+            const wrapper = btn.parentElement;
+            const codeEl = wrapper.querySelector('code');
+            const text = codeEl.textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
