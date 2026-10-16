@@ -183,7 +183,22 @@
                         <tr>
                             <td><code>--item-border-radius</code></td>
                             <td><code>0.5em</code></td>
-                            <td>Border radius</td>
+                            <td>Item border radius</td>
+                        </tr>
+                        <tr>
+                            <td><code>--item-width</code></td>
+                            <td><code>auto</code></td>
+                            <td>Item base width</td>
+                        </tr>
+                        <tr>
+                            <td><code>--item-min-width</code></td>
+                            <td><code>8em</code></td>
+                            <td>Item minimum width</td>
+                        </tr>
+                        <tr>
+                            <td><code>--item-max-width</code></td>
+                            <td><code>none</code></td>
+                            <td>Item maximum width</td>
                         </tr>
                         <tr class="category-row"><td colspan="3">Typography</td></tr>
                         <tr>
@@ -249,6 +264,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <p>An item never gets narrower than <code>--item-min-width</code>. When a row does not fit, the diagram gets wider than the page instead of squeezing the items.</p>
 
             <h3>Deprecated CSS Variables</h3>
             <p>Older names of the CSS variables still work until the next major version.</p>
@@ -383,6 +400,9 @@
     <span class="hljs-attr">--view-bg-color:</span> <span class="hljs-string">"#b2f2bb"</span>
     <span class="hljs-comment"># Sizes</span>
     <span class="hljs-attr">--item-border-radius:</span> <span class="hljs-string">"0.5em"</span>
+    <span class="hljs-attr">--item-width:</span> <span class="hljs-string">"auto"</span>
+    <span class="hljs-attr">--item-min-width:</span> <span class="hljs-string">"8em"</span>
+    <span class="hljs-attr">--item-max-width:</span> <span class="hljs-string">"none"</span>
     <span class="hljs-comment"># Typography</span>
     <span class="hljs-attr">--diagram-font-family:</span> <span class="hljs-string">"system-ui"</span>
     <span class="hljs-attr">--slicename-font-size:</span> <span class="hljs-string">"2em"</span>

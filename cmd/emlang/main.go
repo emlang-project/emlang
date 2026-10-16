@@ -125,6 +125,9 @@ diagram:
   #   --exception-bg-color: "#ffc9c9"
   #   --view-bg-color: "#b2f2bb"
   #   --item-border-radius: 0.5em
+  #   --item-width: auto
+  #   --item-min-width: 8em
+  #   --item-max-width: none
   #
   #   --diagram-font-family: system-ui
   #   --props-font-family: monospace

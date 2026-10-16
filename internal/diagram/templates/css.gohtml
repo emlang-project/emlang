@@ -10,6 +10,9 @@
         --exception-bg-color: #ffc9c9;
         --view-bg-color: #b2f2bb;
         --item-border-radius: 0.5em;
+        --item-width: auto;
+        --item-min-width: 8em;
+        --item-max-width: none;
 
         --diagram-font-family: system-ui;
         --props-font-family: monospace;
@@ -89,7 +92,10 @@
             display: inline-flex;
             flex-direction: column;
             gap: 0.5em;
+            max-width: var(--item-max-width);
+            min-width: var(--item-min-width);
             padding: 0.5em;
+            width: var(--item-width);
         }
 
         .emlang-trigger { background-color: var(--trigger-bg-color); }

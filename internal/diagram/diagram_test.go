@@ -341,6 +341,27 @@ slices:
 	assertContains(t, out, `--command-bg-color: #ddeeff;`)
 }
 
+func TestItemWidthVariables(t *testing.T) {
+	doc, err := parser.Parse(strings.NewReader("slices:\n  s:\n    - e: A\n"))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	html, err := New().Generate(doc)
+	if err != nil {
+		t.Fatalf("generate error: %v", err)
+	}
+
+	out := string(html)
+
+	assertContains(t, out, `--item-width: auto;`)
+	assertContains(t, out, `--item-min-width: 8em;`)
+	assertContains(t, out, `--item-max-width: none;`)
+	assertContains(t, out, `width: var(--item-width);`)
+	assertContains(t, out, `min-width: var(--item-min-width);`)
+	assertContains(t, out, `max-width: var(--item-max-width);`)
+}
+
 func TestDeprecatedCSSVariables(t *testing.T) {
 	input := `
 slices:
