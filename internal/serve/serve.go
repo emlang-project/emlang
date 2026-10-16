@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -47,6 +48,11 @@ type state struct {
 	html    []byte
 	hash    string
 	lastMod time.Time
+
+	// lastErr is the last render error reported, so the same error is
+	// reported once while the file stays broken. Only the watcher
+	// goroutine uses it.
+	lastErr string
 }
 
 func (s *state) update(html []byte) {
@@ -66,6 +72,39 @@ func (s *state) getHash() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.hash
+}
+
+// reload renders the file again if it changed since the last good render.
+// It reports a new diagram on stdout and a render error on stderr. A broken
+// file is rendered again on every call, since an editor may still be
+// writing it, but the same error is reported only once.
+func (s *state) reload(filePath string, cfg *config.Config, stdout, stderr io.Writer) {
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return
+	}
+	s.mu.RLock()
+	changed := info.ModTime().After(s.lastMod)
+	s.mu.RUnlock()
+	if !changed {
+		return
+	}
+
+	html, err := generate(filePath, cfg)
+	if err != nil {
+		if err.Error() != s.lastErr {
+			s.lastErr = err.Error()
+			fmt.Fprintf(stderr, "Regeneration error: %v\n", err)
+		}
+		return
+	}
+	s.lastErr = ""
+
+	s.mu.Lock()
+	s.lastMod = info.ModTime()
+	s.mu.Unlock()
+	s.update(html)
+	fmt.Fprintln(stdout, "Diagram updated.")
 }
 
 // generate parses the file and generates the wrapped HTML page.
@@ -136,26 +175,7 @@ func Start(filePath string, addr string, port int, cfg *config.Config) error {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				info, err := os.Stat(filePath)
-				if err != nil {
-					continue
-				}
-				s.mu.RLock()
-				changed := info.ModTime().After(s.lastMod)
-				s.mu.RUnlock()
-				if !changed {
-					continue
-				}
-				newHTML, err := generate(filePath, cfg)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Regeneration error: %v\n", err)
-					continue
-				}
-				s.mu.Lock()
-				s.lastMod = info.ModTime()
-				s.mu.Unlock()
-				s.update(newHTML)
-				fmt.Println("Diagram updated.")
+				s.reload(filePath, cfg, os.Stdout, os.Stderr)
 			}
 		}
 	}()

@@ -6,6 +6,8 @@
 // the current HTML every second and reloads when it differs. Polling on
 // both sides keeps the package on the standard library alone.
 //
-// A file that fails to parse keeps the last good diagram on screen, and
-// the error is printed on stderr. Ctrl+C shuts the server down.
+// A file that fails to parse keeps the last good diagram on screen. It is
+// rendered again on every check, since an editor may still be writing it,
+// but each error is printed on stderr only once. Ctrl+C shuts the server
+// down.
 package serve
