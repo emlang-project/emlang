@@ -134,6 +134,8 @@ The CI runs `gofmt`, `go vet`, the build (including WebAssembly), the tests with
 
 Pushing a `v*` tag publishes a release with binaries for Linux, macOS, Windows and WebAssembly, built with that tag as their version.
 
+The website, <https://emlang-project.github.io/>, lives in `docs/`. Pushing a `v*` tag also publishes it, with the WebAssembly module of that tag. To publish it by hand, run `gh workflow run docs.yml`, with `--ref <tag>` to publish a release.
+
 ## License
 
 [MIT](LICENSE)
