@@ -37,12 +37,16 @@
 
         <section id="installation">
             <h2>Installation</h2>
-            <p>Install with <a href="https://go.dev/" style="color: var(--violet-6);">Go</a>:</p>
+            <p>Install with <a href="https://go.dev/" style="color: var(--violet-6);">Go</a> 1.27.2 or later:</p>
             <div class="code-wrapper">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>go install github.com/emlang-project/emlang/cmd/emlang@latest</code></pre>
             </div>
-            <p>Or download a precompiled binary from the <a href="https://github.com/emlang-project/emlang/releases" style="color: var(--violet-6);">releases page</a>.</p>
+            <p>Or download a precompiled binary from the <a href="https://github.com/emlang-project/emlang/releases" style="color: var(--violet-6);">releases page</a>. Each release includes a <code>SHA256SUMS</code> file to check the downloads:</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>sha256sum -c SHA256SUMS --ignore-missing</code></pre>
+            </div>
         </section>
 
         <section id="usage">
@@ -260,7 +264,14 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
 
         <section id="fmt">
             <h2>emlang fmt</h2>
-            <p>Format a YAML source file to canonical output. Sorts element properties and test names deterministically.</p>
+            <p>Format a YAML source file to canonical output:</p>
+            <ul class="plain">
+                <li>Element keys use one style: short (<code>e</code>) or long (<code>event</code>).</li>
+                <li>A slice without tests uses the direct form, a list of elements without a <code>steps</code> key.</li>
+                <li>Keys follow a fixed order: <code>steps</code> before <code>tests</code>; <code>given</code>, <code>when</code>, then <code>then</code>; the element type before <code>props</code>.</li>
+                <li>Element names and swimlanes are trimmed: <code>" Lane / Name "</code> becomes <code>"Lane/Name"</code>.</li>
+            </ul>
+            <p>Comments, quoting, prop values, and the order of slices, tests, elements and props are kept as written.</p>
 
             <h3>Usage</h3>
             <pre><code>emlang fmt [flags] &lt;file&gt;</code></pre>
@@ -422,13 +433,13 @@ cat model.yaml | emlang diagram -o diagram.html -</code></pre>
 
         <section id="version">
             <h2>emlang version</h2>
-            <p>Print the CLI version and the specification version it implements.</p>
+            <p>Print the CLI version and the specification version it implements. The CLI version is the release tag. A binary built from source with <code>make build</code> shows the output of <code>git describe</code>, and one built with a plain <code>go build</code> shows <code>dev</code>.</p>
 
             <h3>Usage</h3>
             <pre><code>emlang version</code></pre>
 
             <h3>Output</h3>
-            <pre><code>emlang version 0.0.0 (spec 1.0.0)</code></pre>
+            <pre><code>emlang version v1.1.0 (spec 1.0.0)</code></pre>
         </section>
 
         <section id="stdin">
