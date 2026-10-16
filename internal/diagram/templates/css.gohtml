@@ -1,33 +1,33 @@
 {{define "css"}}
     .emlang-documents {
-        --background-color: #ffffff;
-		--text-color: #212529;
-        --border-color: #ced4da;
+        --diagram-bg-color: #ffffff;
+		--diagram-text-color: #212529;
+        --diagram-border-color: #ced4da;
 
-        --trigger-color: #e9ecef;
-        --command-color: #a5d8ff;
-        --event-color: #ffd8a8;
-        --exception-color: #ffc9c9;
-        --view-color: #b2f2bb;
+        --trigger-bg-color: #e9ecef;
+        --command-bg-color: #a5d8ff;
+        --event-bg-color: #ffd8a8;
+        --exception-bg-color: #ffc9c9;
+        --view-bg-color: #b2f2bb;
         --item-border-radius: 0.5em;
 
-        --font-family-normal: system-ui;
-        --font-family-props: monospace;
+        --diagram-font-family: system-ui;
+        --props-font-family: monospace;
 
-        --font-size-slicename: 2em;
-        --font-weight-slicename: normal;
-        --font-size-swimlane: 1.5em;
-        --font-weight-swimlane: normal;
-        --font-size-testname: 1em;
-        --font-weight-testname: bold;
-        --font-size-label: 0.75em;
-        --font-weight-label: normal;
-        --font-size-props: 0.75em;
-        --font-weight-props: normal;
+        --slicename-font-size: 2em;
+        --slicename-font-weight: normal;
+        --swimlane-font-size: 1.5em;
+        --swimlane-font-weight: normal;
+        --testname-font-size: 1em;
+        --testname-font-weight: bold;
+        --label-font-size: 0.75em;
+        --label-font-weight: normal;
+        --props-font-size: 0.75em;
+        --props-font-weight: normal;
 
         align-items: flex-start;
-        background-color: var(--background-color);
-        color: var(--text-color);
+        background-color: var(--diagram-bg-color);
+        color: var(--diagram-text-color);
         display: inline-flex;
         flex-direction: column;
         gap: 2em;
@@ -39,7 +39,7 @@
         }
 
         display: inline-grid;
-        font-family: var(--font-family-normal), system-ui;
+        font-family: var(--diagram-font-family), system-ui;
 
         .emlang-row {
             display: contents;
@@ -51,12 +51,12 @@
                 padding: 0.5em;
 
                 &:not(:first-child) {
-                    border-left: 1px solid var(--border-color);
+                    border-left: 1px solid var(--diagram-border-color);
                 }
             }
 
             &:not(:last-child) > div {
-                border-bottom: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--diagram-border-color);
             }
 
             &.emlang-row-tests > div {
@@ -70,14 +70,14 @@
         }
 
         .emlang-slicename {
-            font-size: var(--font-size-slicename);
-            font-weight: var(--font-weight-slicename);
+            font-size: var(--slicename-font-size);
+            font-weight: var(--slicename-font-weight);
             grid-column: 1 / -1;
         }
 
         .emlang-swimlane {
-            font-size: var(--font-size-swimlane);
-            font-weight: var(--font-weight-swimlane);
+            font-size: var(--swimlane-font-size);
+            font-weight: var(--swimlane-font-weight);
         }
 
         .emlang-trigger,
@@ -92,11 +92,11 @@
             padding: 0.5em;
         }
 
-        .emlang-trigger { background-color: var(--trigger-color); }
-        .emlang-command { background-color: var(--command-color); }
-        .emlang-view { background-color: var(--view-color); }
-        .emlang-event { background-color: var(--event-color); }
-        .emlang-exception { background-color: var(--exception-color); }
+        .emlang-trigger { background-color: var(--trigger-bg-color); }
+        .emlang-command { background-color: var(--command-bg-color); }
+        .emlang-view { background-color: var(--view-bg-color); }
+        .emlang-event { background-color: var(--event-bg-color); }
+        .emlang-exception { background-color: var(--exception-bg-color); }
 
         .emlang-props {
             column-gap: 0.5em;
@@ -109,9 +109,9 @@
             }
 
             * {
-                font-family: var(--font-family-props), monospace;
-                font-size: var(--font-size-props);
-                font-weight: var(--font-weight-props);
+                font-family: var(--props-font-family), monospace;
+                font-size: var(--props-font-size);
+                font-weight: var(--props-font-weight);
                 margin: 0;
             }
         }
@@ -122,18 +122,18 @@
             grid-template-columns: auto 1fr;
 
             & > span:first-child {
-                font-size: var(--font-size-testname);
-                font-weight: var(--font-weight-testname);
+                font-size: var(--testname-font-size);
+                font-weight: var(--testname-font-weight);
                 grid-column: 1/-1;
             }
 
             & > span:not(:first-child) {
-                font-size: var(--font-size-label);
-                font-weight: var(--font-weight-label);
+                font-size: var(--label-font-size);
+                font-weight: var(--label-font-weight);
             }
 
             &:not(:last-child) {
-                border-bottom: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--diagram-border-color);
                 padding-bottom: 1em;
             }
 

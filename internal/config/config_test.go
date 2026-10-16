@@ -15,8 +15,8 @@ func TestParseFullConfig(t *testing.T) {
     - "orphan-exception"
 diagram:
   css:
-    --trigger-color: "#f0f0f0"
-    --command-color: "#ddeeff"
+    --trigger-bg-color: "#f0f0f0"
+    --command-bg-color: "#ddeeff"
 `
 	if err := os.WriteFile(cfgFile, []byte(content), 0644); err != nil {
 		t.Fatal(err)
@@ -36,8 +36,8 @@ diagram:
 	if len(cfg.Diagram.CSS) != 2 {
 		t.Errorf("expected 2 CSS overrides, got %d", len(cfg.Diagram.CSS))
 	}
-	if cfg.Diagram.CSS["--trigger-color"] != "#f0f0f0" {
-		t.Errorf("unexpected --trigger-color: %q", cfg.Diagram.CSS["--trigger-color"])
+	if cfg.Diagram.CSS["--trigger-bg-color"] != "#f0f0f0" {
+		t.Errorf("unexpected --trigger-bg-color: %q", cfg.Diagram.CSS["--trigger-bg-color"])
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 
 	"github.com/emlang-project/emlang/internal/ast"
 	"github.com/emlang-project/emlang/internal/buildinfo"
@@ -114,29 +115,30 @@ diagram:
   #   port: 8274
 
   # css:
-  #   --text-color: "#212529"
-  #   --border-color: "#ced4da"
+  #   --diagram-bg-color: "#ffffff"
+  #   --diagram-text-color: "#212529"
+  #   --diagram-border-color: "#ced4da"
   #
-  #   --trigger-color: "#e9ecef"
-  #   --command-color: "#a5d8ff"
-  #   --event-color: "#ffd8a8"
-  #   --exception-color: "#ffc9c9"
-  #   --view-color: "#b2f2bb"
+  #   --trigger-bg-color: "#e9ecef"
+  #   --command-bg-color: "#a5d8ff"
+  #   --event-bg-color: "#ffd8a8"
+  #   --exception-bg-color: "#ffc9c9"
+  #   --view-bg-color: "#b2f2bb"
   #   --item-border-radius: 0.5em
   #
-  #   --font-family-normal: system-ui
-  #   --font-family-props: monospace
+  #   --diagram-font-family: system-ui
+  #   --props-font-family: monospace
   #
-  #   --font-size-slicename: 2em
-  #   --font-weight-slicename: normal
-  #   --font-size-swimlane: 1.5em
-  #   --font-weight-swimlane: normal
-  #   --font-size-testname: 1em
-  #   --font-weight-testname: bold
-  #   --font-size-label: 0.75em
-  #   --font-weight-label: normal
-  #   --font-size-props: 0.75em
-  #   --font-weight-props: normal
+  #   --slicename-font-size: 2em
+  #   --slicename-font-weight: normal
+  #   --swimlane-font-size: 1.5em
+  #   --swimlane-font-weight: normal
+  #   --testname-font-size: 1em
+  #   --testname-font-weight: bold
+  #   --label-font-size: 0.75em
+  #   --label-font-weight: normal
+  #   --props-font-size: 0.75em
+  #   --props-font-weight: normal
 `
 
 func cmdInit() {
@@ -338,6 +340,8 @@ func cmdDiagram(args []string, cfg *config.Config) {
 
 	inputArg := flags.Arg(0)
 
+	warnRenamedCSSVariables(cfg.Diagram.CSS)
+
 	if *serveFlag {
 		if inputArg == "-" {
 			fmt.Fprintln(os.Stderr, "Error: --serve cannot be used with stdin")
@@ -385,6 +389,21 @@ func cmdDiagram(args []string, cfg *config.Config) {
 		}
 	} else {
 		os.Stdout.Write(html)
+	}
+}
+
+// warnRenamedCSSVariables prints a warning for each deprecated CSS variable
+// name in the config, with the name to use instead.
+func warnRenamedCSSVariables(css map[string]string) {
+	names := make([]string, 0, len(css))
+	for name := range css {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if current, ok := diagram.RenamedCSSVariable(name); ok {
+			fmt.Fprintf(os.Stderr, "Warning: diagram.css: %s is deprecated, use %s\n", name, current)
+		}
 	}
 }
 

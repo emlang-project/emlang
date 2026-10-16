@@ -198,13 +198,14 @@ func (g *Generator) buildDiagramData(doc *ast.Document) diagramData {
 
 	var overrides []cssOverride
 	if len(g.CSSOverrides) > 0 {
-		keys := make([]string, 0, len(g.CSSOverrides))
-		for k := range g.CSSOverrides {
+		css := renameCSSVariables(g.CSSOverrides)
+		keys := make([]string, 0, len(css))
+		for k := range css {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			overrides = append(overrides, cssOverride{Key: template.CSS(k), Value: template.CSS(g.CSSOverrides[k])})
+			overrides = append(overrides, cssOverride{Key: template.CSS(k), Value: template.CSS(css[k])})
 		}
 	}
 

@@ -123,8 +123,8 @@
             <p><strong>Type:</strong> <code>map of string to string</code> — CSS variable name to value.</p>
             <pre><code><span class="hljs-attr">diagram:</span>
   <span class="hljs-attr">css:</span>
-    <span class="hljs-attr">--command-color:</span> <span class="hljs-string">"#dbe4ff"</span>
-    <span class="hljs-attr">--font-size-label:</span> <span class="hljs-string">"0.8em"</span></code></pre>
+    <span class="hljs-attr">--command-bg-color:</span> <span class="hljs-string">"#dbe4ff"</span>
+    <span class="hljs-attr">--label-font-size:</span> <span class="hljs-string">"0.8em"</span></code></pre>
 
             <h3>Available CSS Variables</h3>
 
@@ -140,37 +140,42 @@
                     <tbody>
                         <tr class="category-row"><td colspan="3">Colors</td></tr>
                         <tr>
-                            <td><code>--text-color</code></td>
+                            <td><code>--diagram-bg-color</code></td>
+                            <td><code>#ffffff</code></td>
+                            <td>Diagram background</td>
+                        </tr>
+                        <tr>
+                            <td><code>--diagram-text-color</code></td>
                             <td><code>#212529</code></td>
                             <td>Main text color</td>
                         </tr>
                         <tr>
-                            <td><code>--border-color</code></td>
+                            <td><code>--diagram-border-color</code></td>
                             <td><code>#ced4da</code></td>
                             <td>Border color</td>
                         </tr>
                         <tr>
-                            <td><code>--trigger-color</code></td>
+                            <td><code>--trigger-bg-color</code></td>
                             <td><code>#e9ecef</code></td>
                             <td>Trigger background</td>
                         </tr>
                         <tr>
-                            <td><code>--command-color</code></td>
+                            <td><code>--command-bg-color</code></td>
                             <td><code>#a5d8ff</code></td>
                             <td>Command background</td>
                         </tr>
                         <tr>
-                            <td><code>--event-color</code></td>
+                            <td><code>--event-bg-color</code></td>
                             <td><code>#ffd8a8</code></td>
                             <td>Event background</td>
                         </tr>
                         <tr>
-                            <td><code>--exception-color</code></td>
+                            <td><code>--exception-bg-color</code></td>
                             <td><code>#ffc9c9</code></td>
                             <td>Exception background</td>
                         </tr>
                         <tr>
-                            <td><code>--view-color</code></td>
+                            <td><code>--view-bg-color</code></td>
                             <td><code>#b2f2bb</code></td>
                             <td>View background</td>
                         </tr>
@@ -182,64 +187,164 @@
                         </tr>
                         <tr class="category-row"><td colspan="3">Typography</td></tr>
                         <tr>
-                            <td><code>--font-family-normal</code></td>
+                            <td><code>--diagram-font-family</code></td>
                             <td><code>system-ui</code></td>
                             <td>Normal font family</td>
                         </tr>
                         <tr>
-                            <td><code>--font-size-slicename</code></td>
+                            <td><code>--slicename-font-size</code></td>
                             <td><code>2em</code></td>
                             <td>Slice name font size</td>
                         </tr>
                         <tr>
-                            <td><code>--font-weight-slicename</code></td>
+                            <td><code>--slicename-font-weight</code></td>
                             <td><code>normal</code></td>
                             <td>Slice name font weight</td>
                         </tr>
                         <tr>
-                            <td><code>--font-size-swimlane</code></td>
+                            <td><code>--swimlane-font-size</code></td>
                             <td><code>1.5em</code></td>
                             <td>Swimlane font size</td>
                         </tr>
                         <tr>
-                            <td><code>--font-weight-swimlane</code></td>
+                            <td><code>--swimlane-font-weight</code></td>
                             <td><code>normal</code></td>
                             <td>Swimlane font weight</td>
                         </tr>
                         <tr>
-                            <td><code>--font-size-testname</code></td>
+                            <td><code>--testname-font-size</code></td>
                             <td><code>1em</code></td>
                             <td>Test name font size</td>
                         </tr>
                         <tr>
-                            <td><code>--font-weight-testname</code></td>
+                            <td><code>--testname-font-weight</code></td>
                             <td><code>bold</code></td>
                             <td>Test name font weight</td>
                         </tr>
                         <tr>
-                            <td><code>--font-size-label</code></td>
+                            <td><code>--label-font-size</code></td>
                             <td><code>0.75em</code></td>
                             <td>Label font size</td>
                         </tr>
                         <tr>
-                            <td><code>--font-weight-label</code></td>
+                            <td><code>--label-font-weight</code></td>
                             <td><code>normal</code></td>
                             <td>Label font weight</td>
                         </tr>
                         <tr>
-                            <td><code>--font-family-props</code></td>
+                            <td><code>--props-font-family</code></td>
                             <td><code>monospace</code></td>
                             <td>Props font family</td>
                         </tr>
                         <tr>
-                            <td><code>--font-size-props</code></td>
+                            <td><code>--props-font-size</code></td>
                             <td><code>0.75em</code></td>
                             <td>Props font size</td>
                         </tr>
                         <tr>
-                            <td><code>--font-weight-props</code></td>
+                            <td><code>--props-font-weight</code></td>
                             <td><code>normal</code></td>
                             <td>Props font weight</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Deprecated CSS Variables</h3>
+            <p>Older names of the CSS variables still work until the next major version.</p>
+            <ul class="rules">
+                <li><code>emlang diagram</code> prints a warning for each older name it finds, with the name to use.</li>
+                <li>When a config sets both names, the current name wins.</li>
+            </ul>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Deprecated</th>
+                            <th>Current</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>--background-color</code></td>
+                            <td><code>--diagram-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--text-color</code></td>
+                            <td><code>--diagram-text-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--border-color</code></td>
+                            <td><code>--diagram-border-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-family-normal</code></td>
+                            <td><code>--diagram-font-family</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--trigger-color</code></td>
+                            <td><code>--trigger-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--command-color</code></td>
+                            <td><code>--command-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--event-color</code></td>
+                            <td><code>--event-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--exception-color</code></td>
+                            <td><code>--exception-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--view-color</code></td>
+                            <td><code>--view-bg-color</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-slicename</code></td>
+                            <td><code>--slicename-font-size</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-slicename</code></td>
+                            <td><code>--slicename-font-weight</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-swimlane</code></td>
+                            <td><code>--swimlane-font-size</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-swimlane</code></td>
+                            <td><code>--swimlane-font-weight</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-testname</code></td>
+                            <td><code>--testname-font-size</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-testname</code></td>
+                            <td><code>--testname-font-weight</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-label</code></td>
+                            <td><code>--label-font-size</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-label</code></td>
+                            <td><code>--label-font-weight</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-family-props</code></td>
+                            <td><code>--props-font-family</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-size-props</code></td>
+                            <td><code>--props-font-size</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--font-weight-props</code></td>
+                            <td><code>--props-font-weight</code></td>
                         </tr>
                     </tbody>
                 </table>
@@ -268,28 +373,29 @@
     <span class="hljs-attr">port:</span> <span class="hljs-number">8274</span>
   <span class="hljs-attr">css:</span>
     <span class="hljs-comment"># Colors</span>
-    <span class="hljs-attr">--text-color:</span> <span class="hljs-string">"#212529"</span>
-    <span class="hljs-attr">--border-color:</span> <span class="hljs-string">"#ced4da"</span>
-    <span class="hljs-attr">--trigger-color:</span> <span class="hljs-string">"#e9ecef"</span>
-    <span class="hljs-attr">--command-color:</span> <span class="hljs-string">"#a5d8ff"</span>
-    <span class="hljs-attr">--event-color:</span> <span class="hljs-string">"#ffd8a8"</span>
-    <span class="hljs-attr">--exception-color:</span> <span class="hljs-string">"#ffc9c9"</span>
-    <span class="hljs-attr">--view-color:</span> <span class="hljs-string">"#b2f2bb"</span>
+    <span class="hljs-attr">--diagram-bg-color:</span> <span class="hljs-string">"#ffffff"</span>
+    <span class="hljs-attr">--diagram-text-color:</span> <span class="hljs-string">"#212529"</span>
+    <span class="hljs-attr">--diagram-border-color:</span> <span class="hljs-string">"#ced4da"</span>
+    <span class="hljs-attr">--trigger-bg-color:</span> <span class="hljs-string">"#e9ecef"</span>
+    <span class="hljs-attr">--command-bg-color:</span> <span class="hljs-string">"#a5d8ff"</span>
+    <span class="hljs-attr">--event-bg-color:</span> <span class="hljs-string">"#ffd8a8"</span>
+    <span class="hljs-attr">--exception-bg-color:</span> <span class="hljs-string">"#ffc9c9"</span>
+    <span class="hljs-attr">--view-bg-color:</span> <span class="hljs-string">"#b2f2bb"</span>
     <span class="hljs-comment"># Sizes</span>
     <span class="hljs-attr">--item-border-radius:</span> <span class="hljs-string">"0.5em"</span>
     <span class="hljs-comment"># Typography</span>
-    <span class="hljs-attr">--font-family-normal:</span> <span class="hljs-string">"system-ui"</span>
-    <span class="hljs-attr">--font-size-slicename:</span> <span class="hljs-string">"2em"</span>
-    <span class="hljs-attr">--font-weight-slicename:</span> <span class="hljs-string">"normal"</span>
-    <span class="hljs-attr">--font-size-swimlane:</span> <span class="hljs-string">"1.5em"</span>
-    <span class="hljs-attr">--font-weight-swimlane:</span> <span class="hljs-string">"normal"</span>
-    <span class="hljs-attr">--font-size-testname:</span> <span class="hljs-string">"1em"</span>
-    <span class="hljs-attr">--font-weight-testname:</span> <span class="hljs-string">"bold"</span>
-    <span class="hljs-attr">--font-size-label:</span> <span class="hljs-string">"0.75em"</span>
-    <span class="hljs-attr">--font-weight-label:</span> <span class="hljs-string">"normal"</span>
-    <span class="hljs-attr">--font-family-props:</span> <span class="hljs-string">"monospace"</span>
-    <span class="hljs-attr">--font-size-props:</span> <span class="hljs-string">"0.75em"</span>
-    <span class="hljs-attr">--font-weight-props:</span> <span class="hljs-string">"normal"</span></code></pre>
+    <span class="hljs-attr">--diagram-font-family:</span> <span class="hljs-string">"system-ui"</span>
+    <span class="hljs-attr">--slicename-font-size:</span> <span class="hljs-string">"2em"</span>
+    <span class="hljs-attr">--slicename-font-weight:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--swimlane-font-size:</span> <span class="hljs-string">"1.5em"</span>
+    <span class="hljs-attr">--swimlane-font-weight:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--testname-font-size:</span> <span class="hljs-string">"1em"</span>
+    <span class="hljs-attr">--testname-font-weight:</span> <span class="hljs-string">"bold"</span>
+    <span class="hljs-attr">--label-font-size:</span> <span class="hljs-string">"0.75em"</span>
+    <span class="hljs-attr">--label-font-weight:</span> <span class="hljs-string">"normal"</span>
+    <span class="hljs-attr">--props-font-family:</span> <span class="hljs-string">"monospace"</span>
+    <span class="hljs-attr">--props-font-size:</span> <span class="hljs-string">"0.75em"</span>
+    <span class="hljs-attr">--props-font-weight:</span> <span class="hljs-string">"normal"</span></code></pre>
             </div>
         </section>
 

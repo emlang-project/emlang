@@ -327,8 +327,8 @@ slices:
 	gen := New()
 
 	gen.CSSOverrides = map[string]string{
-		"--trigger-color": "#f0f0f0",
-		"--command-color": "#ddeeff",
+		"--trigger-bg-color": "#f0f0f0",
+		"--command-bg-color": "#ddeeff",
 	}
 	html, err := gen.Generate(doc)
 	if err != nil {
@@ -337,8 +337,61 @@ slices:
 
 	out := string(html)
 
-	assertContains(t, out, `--trigger-color: #f0f0f0;`)
-	assertContains(t, out, `--command-color: #ddeeff;`)
+	assertContains(t, out, `--trigger-bg-color: #f0f0f0;`)
+	assertContains(t, out, `--command-bg-color: #ddeeff;`)
+}
+
+func TestDeprecatedCSSVariables(t *testing.T) {
+	input := `
+slices:
+  checkout:
+    - c: PlaceOrder
+    - e: OrderPlaced
+`
+	doc, err := parser.Parse(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	gen := New()
+	gen.CSSOverrides = map[string]string{
+		"--event-color":        "#111111",
+		"--font-size-label":    "0.8em",
+		"--command-color":      "#222222",
+		"--command-bg-color":   "#333333",
+		"--item-border-radius": "0",
+	}
+	html, err := gen.Generate(doc)
+	if err != nil {
+		t.Fatalf("generate error: %v", err)
+	}
+
+	out := string(html)
+
+	assertContains(t, out, `--event-bg-color: #111111;`)
+	assertContains(t, out, `--label-font-size: 0.8em;`)
+	assertContains(t, out, `--command-bg-color: #333333;`)
+	assertContains(t, out, `--item-border-radius: 0;`)
+	for _, old := range []string{"--event-color:", "--font-size-label:", "--command-color:", "#222222"} {
+		if strings.Contains(out, old) {
+			t.Errorf("output should not contain %q", old)
+		}
+	}
+}
+
+func TestRenamedCSSVariableCoversTemplate(t *testing.T) {
+	css, err := templateFS.ReadFile("templates/css.gohtml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for old, current := range renamedCSSVariables {
+		if !strings.Contains(string(css), current+":") {
+			t.Errorf("%s is renamed to %s, which the CSS template does not define", old, current)
+		}
+	}
+	if current, ok := RenamedCSSVariable("--item-border-radius"); ok {
+		t.Errorf("--item-border-radius should not be deprecated, got %s", current)
+	}
 }
 
 func TestContentHashID(t *testing.T) {

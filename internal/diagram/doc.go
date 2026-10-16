@@ -8,6 +8,8 @@
 // The HTML and CSS live in the templates directory, embedded in the
 // binary, and are filled with html/template. The CSS uses custom
 // properties, which Generator.CSSOverrides can set.
+// Deprecated property names are translated to their current names before
+// rendering, so a config written for an earlier v1 release keeps working.
 //
 // The HTML id of each document is derived from a hash of the source, so
 // several diagrams on one page don't share ids or styles.
