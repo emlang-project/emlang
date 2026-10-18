@@ -85,7 +85,9 @@ cp -r docs/. bin/emlang.wasm bin/wasm_exec.js tmp/site/
 python3 -m http.server -d tmp/site
 ```
 
-The site is served at `http://localhost:8000/`.
+The site is served at `http://localhost:8000/`. The navigation bar
+shows `dev` as the version. The publishing workflow replaces it with the
+latest tag.
 
 `emlang.wasm` and `wasm_exec.js` are never committed: the publishing
 workflow builds them.

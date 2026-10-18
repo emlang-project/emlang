@@ -64,6 +64,14 @@ nav {
     width: 28px;
 }
 
+.nav-version {
+    color: var(--gray-7);
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+    margin-right: auto;
+    text-decoration: none;
+}
+
 .nav-links {
     display: flex;
     gap: 1.5rem;

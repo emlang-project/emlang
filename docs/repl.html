@@ -46,6 +46,11 @@ header h1 {
   color: #212529;
 }
 
+header .version {
+  color: #495057;
+  font-size: 0.85rem;
+}
+
 header .actions {
   display: flex;
   gap: 0.5rem;
@@ -248,6 +253,7 @@ header button:hover { background: #5f3dc4; border-color: #5f3dc4; }
 <header>
   <img src="https://emlang-project.github.io/logo.svg" alt="emlang">
   <h1>Emlang Editor</h1>
+  <span class="version"></span>
   <div class="actions">
     <button id="btn-fmt" title="Format source (Ctrl+Shift+F)">Format</button>
   </div>
@@ -512,6 +518,7 @@ document.addEventListener("mouseup", function() {
 appendMsg("msg-info", "Loading WASM...");
 
 window.onEmlangReady = function() {
+  document.querySelector("header .version").textContent = emlangVersion();
   backend = {
     render: function(src) { return Promise.resolve(emlangRender(src)); },
     format: function(src) { return Promise.resolve(emlangFormat(src)); }

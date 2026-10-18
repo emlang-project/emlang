@@ -234,17 +234,6 @@
             margin-top: 4rem;
         }
 
-        .badges {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-
-        .badges img {
-            height: 20px;
-        }
-
         /* Responsive (homepage overrides) */
         @media (max-width: 768px) {
             h1 {
@@ -269,7 +258,7 @@
 <body>
     <nav>
         <div class="nav-inner">
-            <a href="#" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a>
+            <a href="#" class="nav-logo"><img src="logo.svg" alt="Emlang" class="nav-logo-img"> The Emlang Project</a> <a href="https://github.com/emlang-project/emlang/releases/latest" class="nav-version">dev</a>
             <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
             </button>
@@ -443,10 +432,6 @@ emlang diagram model.yaml -o diagram.html
             <p><strong>Emlang</strong> - Event Modeling Language</p>
             <p><a href="https://github.com/emlang-project">GitHub: emlang-project</a></p>
             <p>MIT License</p>
-            <div class="badges">
-                <a href="https://github.com/emlang-project/emlang"><img src="https://img.shields.io/github/v/release/emlang-project/emlang?label=emlang" alt="emlang release"></a>
-                <a href="https://github.com/emlang-project/spec"><img src="https://img.shields.io/github/v/release/emlang-project/spec?label=spec" alt="spec release"></a>
-            </div>
         </div>
     </footer>
 

@@ -31,6 +31,8 @@ jobs:
           mkdir public
           cp -r docs/. public/
           cp bin/emlang.wasm bin/wasm_exec.js public/
+          version="$(git describe --tags --abbrev=0)"
+          sed -i "s|class=\"nav-version\">dev<|class=\"nav-version\">${version}<|" public/*.html
           echo "Generated from https://github.com/emlang-project/emlang/tree/main/docs. Do not edit by hand." > public/README.md
 
       - name: Publish to emlang-project/emlang-project.github.io
