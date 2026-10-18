@@ -48,7 +48,7 @@ slices:
 	assertContains(t, out, `grid-column: 3`)
 
 	// CSS: total columns = 3 (elements, no swimlane column)
-	assertContains(t, out, `repeat(3, auto)`)
+	assertContains(t, out, `repeat(3, minmax(min-content, auto))`)
 }
 
 func TestExtendedSliceWithTests(t *testing.T) {
@@ -233,7 +233,7 @@ slices:
 	out := string(html)
 
 	// Total columns = 2 (slice-a) + 3 (slice-b) = 5 (no swimlane column)
-	assertContains(t, out, `repeat(5, auto)`)
+	assertContains(t, out, `repeat(5, minmax(min-content, auto))`)
 
 	// slice-a starts at col 1, span 2
 	assertContains(t, out, `grid-column: 1 / span 2`)

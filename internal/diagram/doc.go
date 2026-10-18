@@ -5,6 +5,10 @@
 // row per swimlane), the commands and views, the events and exceptions (one
 // row per swimlane), then the tests, each under its slice.
 //
+// A column is never narrower than the min-content width of its items. With
+// plain auto columns, a diagram wider than the page squeezes each item down
+// to its min-width, and the props it holds overflow the item.
+//
 // The HTML and CSS live in the templates directory, embedded in the
 // binary, and are filled with html/template. The CSS uses custom
 // properties, which Generator.CSSOverrides can set.

@@ -1,6 +1,6 @@
 {{define "document-css"}}
     #{{.ID}} {
-        grid-template-columns: repeat({{.TotalColumns}}, auto);
+        grid-template-columns: repeat({{.TotalColumns}}, minmax(min-content, auto));
 
         .emlang-row {
 {{- range .SliceColumns}}
