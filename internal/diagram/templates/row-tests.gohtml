@@ -7,6 +7,9 @@
 {{- range .Tests}}
 <div class="emlang-test">
 <span>{{.Name}}</span>
+{{- if .Comment}}
+<div class="emlang-comment">{{.Comment}}</div>
+{{- end}}
 {{- if .HasGiven}}
 <span>GIVEN</span>
 <div>

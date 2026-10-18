@@ -484,3 +484,117 @@ func assertContains(t *testing.T, haystack, needle string) {
 		t.Errorf("expected output to contain %q", needle)
 	}
 }
+
+func assertNotContains(t *testing.T, haystack, needle string) {
+	t.Helper()
+	if strings.Contains(haystack, needle) {
+		t.Errorf("expected output not to contain %q", needle)
+	}
+}
+
+func generate(t *testing.T, input string) string {
+	t.Helper()
+	doc, err := parser.Parse(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	html, err := New().Generate(doc)
+	if err != nil {
+		t.Fatalf("generate error: %v", err)
+	}
+	return string(html)
+}
+
+func assertOrder(t *testing.T, out string, parts ...string) {
+	t.Helper()
+	pos := 0
+	for _, p := range parts {
+		i := strings.Index(out[pos:], p)
+		if i < 0 {
+			t.Fatalf("expected %q after position %d in output:\n%s", p, pos, out)
+		}
+		pos += i + len(p)
+	}
+}
+
+func TestComments(t *testing.T) {
+	out := generate(t, `# document comment
+slices:
+  # slice comment
+  Slice1:
+    steps:
+      - c: Register user
+      - e: User registered
+    tests:
+      # test comment
+      Test1:
+        when:
+          - c: Register user
+`)
+
+	assertOrder(t, out,
+		`<div class="emlang-comment emlang-document-comment"><p>document comment</p>`,
+		`class="emlang-row emlang-row-slices"`,
+		`<span class="emlang-slicename">Slice1</span>`,
+		`<div class="emlang-comment"><p>slice comment</p>`,
+		`<span>Test1</span>`,
+		`<div class="emlang-comment"><p>test comment</p>`,
+		`<span>WHEN</span>`,
+	)
+}
+
+func TestNoComments(t *testing.T) {
+	out := generate(t, `
+slices:
+  Slice1:
+    - c: Register user
+`)
+	assertNotContains(t, out, `class="emlang-comment`)
+}
+
+func TestCommentMarkdown(t *testing.T) {
+	out := generate(t, `slices:
+  # **bold** and *italic*
+  # see [the spec](https://example.com/spec)
+  #
+  # second paragraph
+  Slice1:
+    - c: Register user
+`)
+	assertContains(t, out, `<strong>bold</strong> and <em>italic</em><br>`)
+	assertContains(t, out, `<a href="https://example.com/spec" target="_blank" rel="noopener noreferrer">the spec</a>`)
+	assertContains(t, out, `<p>second paragraph</p>`)
+
+	// Links take the comment text color
+	assertOrder(t, out, `.emlang-comment {`, `a {`, `color: inherit;`)
+}
+
+func TestCommentGFM(t *testing.T) {
+	out := generate(t, `slices:
+  # | column 1 | column 2 |
+  # | --- | --- |
+  # | foo | bar |
+  #
+  # ~~removed~~ https://example.com
+  #
+  # - [x] done
+  Slice1:
+    - c: Register user
+`)
+	assertContains(t, out, `<th>column 1</th>`)
+	assertContains(t, out, `<td>foo</td>`)
+	assertContains(t, out, `<del>removed</del>`)
+	assertContains(t, out, `<a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a>`)
+	assertContains(t, out, `type="checkbox"`)
+}
+
+func TestCommentUnsafe(t *testing.T) {
+	out := generate(t, `slices:
+  # <script>alert(1)</script>
+  # [click](javascript:alert(1))
+  Slice1:
+    - c: Register user
+`)
+	assertNotContains(t, out, `<script>`)
+	assertNotContains(t, out, `javascript:`)
+}

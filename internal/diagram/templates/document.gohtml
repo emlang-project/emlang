@@ -1,4 +1,7 @@
 {{define "document"}}<div id="{{.ID}}" class="emlang-document">
+{{- if .Comment}}
+<div class="emlang-comment emlang-document-comment">{{.Comment}}</div>
+{{- end}}
 {{- template "row-slicenames" .}}
 {{- range .Rows}}
 {{- if eq .Class "emlang-row-tests"}}

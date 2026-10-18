@@ -4,6 +4,7 @@ package ast
 type SubDoc struct {
 	Slices     map[string]*Slice // slices in this sub-document
 	SliceOrder []string          // insertion order of slice names
+	Comment    string            // comment above the document, without '#'
 }
 
 // Document is the root node of an Emlang YAML document.
@@ -22,6 +23,7 @@ type Slice struct {
 	Elements  []*Element       // slice steps
 	Tests     map[string]*Test // attached tests (extended form only)
 	TestOrder []string         // insertion order of test names
+	Comment   string           // comment above the slice, without '#'
 }
 
 // Test represents a test with Given-When-Then structure.
@@ -33,6 +35,7 @@ type Test struct {
 	HasGiven bool       // true if given key was present in source
 	HasWhen  bool       // true if when key was present in source
 	HasThen  bool       // true if then key was present in source
+	Comment  string     // comment above the test, without '#'
 }
 
 // ElementType represents the type of an element.

@@ -140,6 +140,7 @@ type cssOverride struct {
 
 type documentData struct {
 	ID           string
+	Comment      template.HTML
 	TotalColumns int
 	HasSwimlanes bool
 	SliceColumns []sliceColumnData
@@ -155,6 +156,7 @@ type sliceColumnData struct {
 
 type sliceNameData struct {
 	DisplayName string
+	Comment     template.HTML
 }
 
 type rowData struct {
@@ -178,6 +180,7 @@ type elementData struct {
 
 type testData struct {
 	Name     string
+	Comment  template.HTML
 	HasGiven bool
 	Given    []elementData
 	HasWhen  bool
@@ -193,7 +196,7 @@ type propData struct {
 
 // --- Build template data ---
 
-func (g *Generator) buildDiagramData(doc *ast.Document) diagramData {
+func (g *Generator) buildDiagramData(doc *ast.Document) (diagramData, error) {
 	hash := contentHash(doc.RawSource)
 
 	var overrides []cssOverride
@@ -211,16 +214,20 @@ func (g *Generator) buildDiagramData(doc *ast.Document) diagramData {
 
 	var docs []documentData
 	for i, sd := range doc.SubDocs {
-		docs = append(docs, buildDocumentData(hash, i, sd))
+		d, err := buildDocumentData(hash, i, sd)
+		if err != nil {
+			return diagramData{}, err
+		}
+		docs = append(docs, d)
 	}
 
 	return diagramData{
 		Overrides: overrides,
 		Documents: docs,
-	}
+	}, nil
 }
 
-func buildDocumentData(hash string, idx int, sd *ast.SubDoc) documentData {
+func buildDocumentData(hash string, idx int, sd *ast.SubDoc) (documentData, error) {
 	l := computeLayout(sd)
 
 	// Slice columns for CSS
@@ -251,7 +258,11 @@ func buildDocumentData(hash string, idx int, sd *ast.SubDoc) documentData {
 		if displayName == "" {
 			displayName = "(anonymous)"
 		}
-		names = append(names, sliceNameData{DisplayName: displayName})
+		comment, err := renderComment(sd.Slices[name].Comment)
+		if err != nil {
+			return documentData{}, err
+		}
+		names = append(names, sliceNameData{DisplayName: displayName, Comment: comment})
 	}
 
 	// Rows
@@ -280,17 +291,27 @@ func buildDocumentData(hash string, idx int, sd *ast.SubDoc) documentData {
 
 	// Tests row
 	if hasTests(sd) {
-		rows = append(rows, buildTestsRow(l, sd))
+		row, err := buildTestsRow(l, sd)
+		if err != nil {
+			return documentData{}, err
+		}
+		rows = append(rows, row)
+	}
+
+	comment, err := renderComment(sd.Comment)
+	if err != nil {
+		return documentData{}, err
 	}
 
 	return documentData{
 		ID:           documentID(hash, idx),
+		Comment:      comment,
 		TotalColumns: l.totalColumns,
 		HasSwimlanes: l.hasSwimlanes,
 		SliceColumns: cols,
 		SliceNames:   names,
 		Rows:         rows,
-	}
+	}, nil
 }
 
 func buildElementRow(l *layout, sd *ast.SubDoc, class string, lane string, match func(*ast.Element) bool) rowData {
@@ -327,15 +348,20 @@ func hasTests(sd *ast.SubDoc) bool {
 	return false
 }
 
-func buildTestsRow(l *layout, sd *ast.SubDoc) rowData {
+func buildTestsRow(l *layout, sd *ast.SubDoc) (rowData, error) {
 	var slices []rowSliceData
 	for _, name := range l.sliceOrder {
 		slice := sd.Slices[name]
 		var tests []testData
 		for _, tn := range slice.TestOrder {
 			test := slice.Tests[tn]
+			comment, err := renderComment(test.Comment)
+			if err != nil {
+				return rowData{}, err
+			}
 			tests = append(tests, testData{
 				Name:     test.Name,
+				Comment:  comment,
 				HasGiven: test.HasGiven,
 				Given:    buildTestElements(test.Given),
 				HasWhen:  test.HasWhen,
@@ -350,7 +376,7 @@ func buildTestsRow(l *layout, sd *ast.SubDoc) rowData {
 		Class:        "emlang-row-tests",
 		HasSwimlanes: l.hasSwimlanes,
 		Slices:       slices,
-	}
+	}, nil
 }
 
 func buildTestElements(elems []*ast.Element) []elementData {
@@ -385,7 +411,10 @@ func (g *Generator) Generate(doc *ast.Document) ([]byte, error) {
 		return []byte(""), nil
 	}
 
-	data := g.buildDiagramData(doc)
+	data, err := g.buildDiagramData(doc)
+	if err != nil {
+		return nil, fmt.Errorf("rendering comment: %w", err)
+	}
 
 	var buf bytes.Buffer
 	if err := tmpl.ExecuteTemplate(&buf, "diagram", data); err != nil {

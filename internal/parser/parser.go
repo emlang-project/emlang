@@ -15,6 +15,26 @@ func isNullNode(node *yaml.Node) bool {
 	return node.Kind == yaml.ScalarNode && node.Tag == "!!null"
 }
 
+// commentText joins the non-empty YAML comment blocks and removes the
+// leading '#' and one following space from each line. Empty lines are
+// kept, so that blank comment lines separate paragraphs.
+func commentText(comments ...string) string {
+	var lines []string
+	for _, c := range comments {
+		if c == "" {
+			continue
+		}
+		if len(lines) > 0 {
+			lines = append(lines, "")
+		}
+		for _, line := range strings.Split(c, "\n") {
+			line = strings.TrimPrefix(strings.TrimSpace(line), "#")
+			lines = append(lines, strings.TrimPrefix(line, " "))
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
 // Parse parses an Emlang YAML file from the reader.
 // Supports multiple YAML documents separated by ---.
 func Parse(r io.Reader) (*ast.Document, error) {
@@ -30,6 +50,9 @@ func Parse(r io.Reader) (*ast.Document, error) {
 		RawSource: raw,
 	}
 
+	// yaml.v3 attaches the comment above a document that is followed by a
+	// blank line to the foot of the previous document node.
+	var lead string
 	for {
 		var root yaml.Node
 		err := decoder.Decode(&root)
@@ -44,9 +67,10 @@ func Parse(r io.Reader) (*ast.Document, error) {
 			Slices: make(map[string]*ast.Slice),
 		}
 
-		if err := parseDocument(&root, doc, subDoc); err != nil {
+		if err := parseDocument(&root, lead, doc, subDoc); err != nil {
 			return nil, err
 		}
+		lead = root.FootComment
 
 		doc.SubDocs = append(doc.SubDocs, subDoc)
 	}
@@ -55,7 +79,8 @@ func Parse(r io.Reader) (*ast.Document, error) {
 }
 
 // parseDocument parses a single YAML document node and merges slices into doc.
-func parseDocument(root *yaml.Node, doc *ast.Document, subDoc *ast.SubDoc) error {
+// lead is the comment yaml.v3 left on the previous document for this one.
+func parseDocument(root *yaml.Node, lead string, doc *ast.Document, subDoc *ast.SubDoc) error {
 	if root.Kind != yaml.DocumentNode || len(root.Content) == 0 {
 		return nil
 	}
@@ -81,6 +106,7 @@ func parseDocument(root *yaml.Node, doc *ast.Document, subDoc *ast.SubDoc) error
 				subDoc.Slices[name] = slice
 			}
 			subDoc.SliceOrder = sliceOrder
+			subDoc.Comment = commentText(lead, root.HeadComment, keyNode.HeadComment)
 
 		default:
 			return fmt.Errorf("unknown top-level key %q at line %d", keyNode.Value, keyNode.Line)
@@ -112,6 +138,7 @@ func parseSlices(node *yaml.Node) (map[string]*ast.Slice, []string, error) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("slice %q: %w", sliceName, err)
 		}
+		slice.Comment = commentText(keyNode.HeadComment)
 		slices[sliceName] = slice
 		order = append(order, sliceName)
 	}
@@ -211,6 +238,7 @@ func parseTests(node *yaml.Node) (map[string]*ast.Test, []string, error) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("test %q: %w", testName, err)
 		}
+		test.Comment = commentText(keyNode.HeadComment)
 
 		tests[testName] = test
 		order = append(order, testName)

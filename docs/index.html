@@ -320,6 +320,8 @@
                     <div class="code-wrapper">
                         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                         <pre><code><span class="hljs-attr">slices:</span>
+  <span class="hljs-comment"># A customer creates an **account**.</span>
+  <span class="hljs-comment"># This comment shows in the diagram.</span>
   <span class="hljs-attr">User registration:</span>
     <span class="hljs-attr">steps:</span>
       - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer / Registration form</span>     <span class="hljs-comment"># trigger on the Customer swimlane</span>
@@ -334,6 +336,7 @@
           <span class="hljs-attr">registeredAt:</span> <span class="hljs-string">datetime</span>
       - <span class="hljs-attr">v:</span> <span class="hljs-string">User profile</span>                     <span class="hljs-comment"># view (read model)</span>
     <span class="hljs-attr">tests:</span>
+      <span class="hljs-comment"># The email is checked *before* the account is created.</span>
       <span class="hljs-attr">Email must be unique:</span>                 <span class="hljs-comment"># Given-When-Then test</span>
         <span class="hljs-attr">given:</span>
           - <span class="hljs-attr">e:</span> <span class="hljs-string">User / User registered</span>

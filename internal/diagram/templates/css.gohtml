@@ -27,6 +27,8 @@
         --label-font-weight: normal;
         --props-font-size: 0.75em;
         --props-font-weight: normal;
+        --comment-font-size: 0.875em;
+        --comment-text-color: #868e96;
 
         align-items: flex-start;
         background-color: var(--diagram-bg-color);
@@ -143,12 +145,47 @@
                 padding-bottom: 1em;
             }
 
-            div {
+            div:not(.emlang-comment) {
                 align-items: flex-start;
                 display: flex;
                 flex-direction: column;
                 gap: 0.5em;
             }
+        }
+
+        .emlang-comment {
+            color: var(--comment-text-color);
+            font-size: var(--comment-font-size);
+            grid-column: 1 / -1;
+
+            a {
+                color: inherit;
+            }
+
+            p {
+                margin: 0;
+            }
+
+            p + p {
+                margin-top: 0.5em;
+            }
+
+            table {
+                border-collapse: collapse;
+                color: inherit;
+                font-size: inherit;
+                margin-top: 0.5em;
+            }
+
+            th,
+            td {
+                border: 1px solid var(--diagram-border-color);
+                padding: 0.25em 0.5em;
+            }
+        }
+
+        .emlang-document-comment {
+            padding: 0.5em;
         }
 
     }

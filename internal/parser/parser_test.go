@@ -1017,3 +1017,57 @@ slices:
 		t.Errorf("expected exception in then, got %s", test.Then[0].Type)
 	}
 }
+
+func TestParseComments(t *testing.T) {
+	input := `# first line
+# second line
+slices:
+  # slice comment
+  #
+  # second paragraph
+  Slice1:
+    steps:
+      - c: Register user # line comment, not kept
+      - e: User/User registered
+    tests:
+      # test comment
+      Test1:
+        when:
+          - c: Register user
+      Test2:
+        when:
+          - c: Register user
+  # other slice
+  Slice2:
+    - c: Register user
+---
+# separated by a blank line
+
+slices:
+  Slice3:
+    - c: Register user
+`
+	doc, err := Parse(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	checks := []struct {
+		name string
+		got  string
+		want string
+	}{
+		{"document 1", doc.SubDocs[0].Comment, "first line\nsecond line"},
+		{"Slice1", doc.Slices["Slice1"].Comment, "slice comment\n\nsecond paragraph"},
+		{"Test1", doc.Slices["Slice1"].Tests["Test1"].Comment, "test comment"},
+		{"Test2", doc.Slices["Slice1"].Tests["Test2"].Comment, ""},
+		{"Slice2", doc.Slices["Slice2"].Comment, "other slice"},
+		{"document 2", doc.SubDocs[1].Comment, "separated by a blank line"},
+		{"Slice3", doc.Slices["Slice3"].Comment, ""},
+	}
+	for _, c := range checks {
+		if c.got != c.want {
+			t.Errorf("%s: comment = %q, want %q", c.name, c.got, c.want)
+		}
+	}
+}

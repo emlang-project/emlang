@@ -5,6 +5,9 @@
 {{- range .SliceNames}}
 <div>
 <span class="emlang-slicename">{{.DisplayName}}</span>
+{{- if .Comment}}
+<div class="emlang-comment">{{.Comment}}</div>
+{{- end}}
 </div>
 {{- end}}
 </div>{{end}}

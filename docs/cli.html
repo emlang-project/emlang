@@ -411,6 +411,38 @@ cat model.yaml | emlang fmt -</code></pre>
             <p>The <code>--serve</code> flag watches the input file for changes, regenerates the diagram automatically, and opens your browser. It cannot be combined with <code>-o</code> or stdin (<code>-</code>).</p>
             <p>Diagram appearance can be customized via the <a href="#config-diagram" style="color: var(--violet-6);">diagram configuration</a>.</p>
 
+            <h3>Comments</h3>
+            <p>A comment block written just above a document, a slice, or a test is shown in the diagram.</p>
+            <ul class="rules">
+                <li>A document comment is shown above the slice names.</li>
+                <li>A slice comment is shown under the slice name.</li>
+                <li>A test comment is shown under the test name.</li>
+                <li>Each comment line starts a new line in the diagram. An empty comment line starts a new paragraph.</li>
+                <li>Comments accept <a href="https://github.github.com/gfm/" style="color: var(--violet-6);">GitHub Flavored Markdown</a>: <code>**bold**</code>, <code>*italic*</code>, <code>~~strikethrough~~</code>, <code>[text](url)</code> links, tables, lists, and task lists.</li>
+                <li>Links open in a new tab.</li>
+                <li>HTML written in a comment is removed.</li>
+                <li>Comments at the end of a line, and comments above an element, are not shown.</li>
+            </ul>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code><span class="hljs-comment"># Sign-up flow, see the [spec](https://example.com/signup).</span>
+<span class="hljs-attr">slices:</span>
+  <span class="hljs-comment"># A customer creates an **account**.</span>
+  <span class="hljs-attr">User registration:</span>
+    <span class="hljs-attr">steps:</span>
+      - <span class="hljs-attr">c:</span> <span class="hljs-string">Register user</span>
+      - <span class="hljs-attr">e:</span> <span class="hljs-string">User / User registered</span>
+    <span class="hljs-attr">tests:</span>
+      <span class="hljs-comment"># The email is checked *before* the account is created.</span>
+      <span class="hljs-attr">Email must be unique:</span>
+        <span class="hljs-attr">given:</span>
+          - <span class="hljs-attr">e:</span> <span class="hljs-string">User / User registered</span>
+        <span class="hljs-attr">when:</span>
+          - <span class="hljs-attr">c:</span> <span class="hljs-string">Register user</span>
+        <span class="hljs-attr">then:</span>
+          - <span class="hljs-attr">x:</span> <span class="hljs-string">Email already in use</span></code></pre>
+            </div>
+
             <h3>Examples</h3>
             <div class="code-wrapper">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
