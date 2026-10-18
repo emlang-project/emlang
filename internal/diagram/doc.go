@@ -20,6 +20,16 @@
 // raw HTML and empties dangerous link URLs. This is what makes it correct
 // to insert its output as template.HTML, so the mode must stay safe.
 //
+// A connector links each element to the next one in its slice. The output
+// holds no script, so it renders wherever it is pasted. The generator knows
+// the rows but not the sizes, so each connector is placed by the browser
+// with CSS anchor positioning. A connector starts in the middle of the
+// first line of text of an element, not at the center of its box. Elements
+// of one row all start at the same height, so the generator knows if a
+// connector goes down, up or stays flat, and draws the matching diagonal.
+// A browser without anchor positioning shows the diagram without the
+// connectors.
+//
 // The HTML id of each document is derived from a hash of the source, so
 // several diagrams on one page don't share ids or styles.
 package diagram

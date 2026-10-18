@@ -598,3 +598,40 @@ func TestCommentUnsafe(t *testing.T) {
 	assertNotContains(t, out, `<script>`)
 	assertNotContains(t, out, `javascript:`)
 }
+
+func TestConnectors(t *testing.T) {
+	input := `
+slices:
+  slice-a:
+    - c: CmdA
+    - e: EvtA
+    - e: EvtB
+    - v: ViewA
+  slice-b:
+    - c: CmdB
+`
+	doc, err := parser.Parse(strings.NewReader(input))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	html, err := New().Generate(doc)
+	if err != nil {
+		t.Fatalf("generate error: %v", err)
+	}
+
+	out := string(html)
+	id := documentID(contentHash([]byte(input)), 0)
+
+	assertContains(t, out, `anchor-name: --`+id+`-1"`)
+	assertContains(t, out, `anchor-name: --`+id+`-5"`)
+	assertNotContains(t, out, `ZgotmplZ`)
+
+	// Connectors link elements within a slice only.
+	if n := strings.Count(out, `<div class="emlang-connector `); n != 3 {
+		t.Errorf("got %d connectors, want 3", n)
+	}
+	assertContains(t, out, fmt.Sprintf(`class="emlang-connector emlang-connector-down" style="--connector-from: --%s-1; --connector-to: --%s-2"`, id, id))
+	assertContains(t, out, fmt.Sprintf(`class="emlang-connector emlang-connector-flat" style="--connector-from: --%s-2; --connector-to: --%s-3"`, id, id))
+	assertContains(t, out, fmt.Sprintf(`class="emlang-connector emlang-connector-up" style="--connector-from: --%s-3; --connector-to: --%s-4"`, id, id))
+}

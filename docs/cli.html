@@ -411,6 +411,16 @@ cat model.yaml | emlang fmt -</code></pre>
             <p>The <code>--serve</code> flag watches the input file for changes, regenerates the diagram automatically, and opens your browser. It cannot be combined with <code>-o</code> or stdin (<code>-</code>).</p>
             <p>Diagram appearance can be customized via the <a href="#config-diagram" style="color: var(--violet-6);">diagram configuration</a>.</p>
 
+            <h3>Connectors</h3>
+            <p>A connector links each element to the next one in its slice.</p>
+            <ul class="rules">
+                <li>A connector goes from the name of one element to the name of the next one.</li>
+                <li>The last element of a slice is not linked to the first element of the next slice.</li>
+                <li>Elements in tests are not linked.</li>
+                <li>Connectors use the text color, <code>--diagram-text-color</code>.</li>
+                <li>A browser without CSS anchor positioning shows the diagram without connectors.</li>
+            </ul>
+
             <h3>Comments</h3>
             <p>A comment block written just above a document, a slice, or a test is shown in the diagram.</p>
             <ul class="rules">

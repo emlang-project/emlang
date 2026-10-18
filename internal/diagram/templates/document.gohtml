@@ -10,4 +10,11 @@
 {{template "row-elements" .}}
 {{- end}}
 {{- end}}
+{{- range .Connectors}}
+<div class="emlang-connector emlang-connector-{{.Direction}}" style="--connector-from: {{.From}}; --connector-to: {{.To}}">
+{{- if eq .Direction "down"}}<svg viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100"/></svg>
+{{- else if eq .Direction "up"}}<svg viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0"/></svg>
+{{- else}}<svg viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="50" x2="100" y2="50"/></svg>
+{{- end}}</div>
+{{- end}}
 </div>{{end}}

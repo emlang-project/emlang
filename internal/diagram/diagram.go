@@ -146,6 +146,15 @@ type documentData struct {
 	SliceColumns []sliceColumnData
 	SliceNames   []sliceNameData
 	Rows         []rowData
+	Connectors   []connectorData
+}
+
+// connectorData links two consecutive elements of a slice. From and To are
+// anchor names; Direction is "down", "up" or "flat", from From to To.
+type connectorData struct {
+	From      template.CSS
+	To        template.CSS
+	Direction string
 }
 
 type sliceColumnData struct {
@@ -175,6 +184,7 @@ type elementData struct {
 	CSSClass string
 	Name     string
 	GridCol  int
+	Anchor   template.CSS
 	Props    []propData
 }
 
@@ -265,26 +275,29 @@ func buildDocumentData(hash string, idx int, sd *ast.SubDoc) (documentData, erro
 		names = append(names, sliceNameData{DisplayName: displayName, Comment: comment})
 	}
 
+	docID := documentID(hash, idx)
+	anchors := elementAnchors(docID, sd)
+
 	// Rows
 	var rows []rowData
 
 	// Trigger rows (one per swimlane)
 	for _, lane := range l.triggerLanes {
-		rows = append(rows, buildElementRow(l, sd, "emlang-row-triggers", lane, func(e *ast.Element) bool {
+		rows = append(rows, buildElementRow(l, sd, anchors, "emlang-row-triggers", lane, func(e *ast.Element) bool {
 			return e.Type == ast.ElementTrigger && e.Swimlane == lane
 		}))
 	}
 
 	// Main row (commands + views)
 	if l.hasMainRow {
-		rows = append(rows, buildElementRow(l, sd, "emlang-row-main", "", func(e *ast.Element) bool {
+		rows = append(rows, buildElementRow(l, sd, anchors, "emlang-row-main", "", func(e *ast.Element) bool {
 			return e.Type == ast.ElementCommand || e.Type == ast.ElementView
 		}))
 	}
 
 	// Event rows (one per swimlane)
 	for _, lane := range l.eventLanes {
-		rows = append(rows, buildElementRow(l, sd, "emlang-row-events", lane, func(e *ast.Element) bool {
+		rows = append(rows, buildElementRow(l, sd, anchors, "emlang-row-events", lane, func(e *ast.Element) bool {
 			return (e.Type == ast.ElementEvent || e.Type == ast.ElementException) && e.Swimlane == lane
 		}))
 	}
@@ -304,17 +317,79 @@ func buildDocumentData(hash string, idx int, sd *ast.SubDoc) (documentData, erro
 	}
 
 	return documentData{
-		ID:           documentID(hash, idx),
+		ID:           docID,
 		Comment:      comment,
 		TotalColumns: l.totalColumns,
 		HasSwimlanes: l.hasSwimlanes,
 		SliceColumns: cols,
 		SliceNames:   names,
 		Rows:         rows,
+		Connectors:   buildConnectors(l, sd, anchors),
 	}, nil
 }
 
-func buildElementRow(l *layout, sd *ast.SubDoc, class string, lane string, match func(*ast.Element) bool) rowData {
+// elementAnchors gives each element of sd a CSS anchor name, unique on the
+// page because it starts with the document id. The name is made of the id
+// and a counter only, which makes it safe to insert as template.CSS.
+func elementAnchors(docID string, sd *ast.SubDoc) map[*ast.Element]template.CSS {
+	anchors := map[*ast.Element]template.CSS{}
+	for _, name := range sd.SliceOrder {
+		for _, elem := range sd.Slices[name].Elements {
+			anchors[elem] = template.CSS(fmt.Sprintf("--%s-%d", docID, len(anchors)+1))
+		}
+	}
+	return anchors
+}
+
+// rowIndex returns the position of the row holding elem, counted from the
+// top, with the row order of buildDocumentData.
+func rowIndex(l *layout, elem *ast.Element) int {
+	lanePos := func(lanes []string, lane string) int {
+		for i, s := range lanes {
+			if s == lane {
+				return i
+			}
+		}
+		return 0
+	}
+	switch elem.Type {
+	case ast.ElementTrigger:
+		return lanePos(l.triggerLanes, elem.Swimlane)
+	case ast.ElementCommand, ast.ElementView:
+		return len(l.triggerLanes)
+	default:
+		return len(l.triggerLanes) + 1 + lanePos(l.eventLanes, elem.Swimlane)
+	}
+}
+
+// buildConnectors links each element to the next one in its slice. The
+// browser places each connector between its two elements with CSS anchor
+// positioning, so the HTML needs no script. The generator only knows
+// whether the connector goes down, up or stays in the same row, and picks the
+// diagonal to draw from that.
+func buildConnectors(l *layout, sd *ast.SubDoc, anchors map[*ast.Element]template.CSS) []connectorData {
+	var connectors []connectorData
+	for _, name := range sd.SliceOrder {
+		elems := sd.Slices[name].Elements
+		for i := 1; i < len(elems); i++ {
+			from, to := rowIndex(l, elems[i-1]), rowIndex(l, elems[i])
+			dir := "flat"
+			if to > from {
+				dir = "down"
+			} else if to < from {
+				dir = "up"
+			}
+			connectors = append(connectors, connectorData{
+				From:      anchors[elems[i-1]],
+				To:        anchors[elems[i]],
+				Direction: dir,
+			})
+		}
+	}
+	return connectors
+}
+
+func buildElementRow(l *layout, sd *ast.SubDoc, anchors map[*ast.Element]template.CSS, class string, lane string, match func(*ast.Element) bool) rowData {
 	var slices []rowSliceData
 	for _, name := range l.sliceOrder {
 		slice := sd.Slices[name]
@@ -325,6 +400,7 @@ func buildElementRow(l *layout, sd *ast.SubDoc, class string, lane string, match
 					CSSClass: "emlang-" + elem.Type.String(),
 					Name:     elem.Name,
 					GridCol:  elementIndex(slice, elem),
+					Anchor:   anchors[elem],
 					Props:    buildProps(elem.Props),
 				})
 			}

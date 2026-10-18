@@ -45,6 +45,8 @@
 
         display: inline-grid;
         font-family: var(--diagram-font-family), system-ui;
+        isolation: isolate;
+        position: relative;
 
         .emlang-row {
             display: contents;
@@ -97,7 +99,9 @@
             max-width: var(--item-max-width);
             min-width: var(--item-min-width);
             padding: 0.5em;
+            position: relative;
             width: var(--item-width);
+            z-index: 1;
         }
 
         .emlang-trigger { background-color: var(--trigger-bg-color); }
@@ -186,6 +190,43 @@
 
         .emlang-document-comment {
             padding: 0.5em;
+        }
+
+        /* A connector box spans from the middle of the first line of text of
+           one element to the same point on the next one. */
+        .emlang-connector {
+            left: anchor(var(--connector-from) center);
+            pointer-events: none;
+            position: absolute;
+            right: anchor(var(--connector-to) center);
+
+            svg {
+                display: block;
+                height: 100%;
+                overflow: visible;
+                width: 100%;
+            }
+
+            line {
+                stroke: var(--diagram-text-color);
+                stroke-width: 1px;
+                vector-effect: non-scaling-stroke;
+            }
+        }
+
+        .emlang-connector-down {
+            bottom: calc(anchor(var(--connector-to) top) - 0.5em - 0.5lh);
+            top: calc(anchor(var(--connector-from) top) + 0.5em + 0.5lh);
+        }
+
+        .emlang-connector-up {
+            bottom: calc(anchor(var(--connector-from) top) - 0.5em - 0.5lh);
+            top: calc(anchor(var(--connector-to) top) + 0.5em + 0.5lh);
+        }
+
+        .emlang-connector-flat {
+            height: 2px;
+            top: calc(anchor(var(--connector-from) top) + 0.5em + 0.5lh - 1px);
         }
 
     }
