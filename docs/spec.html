@@ -315,7 +315,9 @@
             <p>Standard YAML comments (<code>#</code>) may be used anywhere.</p>
             <div class="code-wrapper">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                <pre><code><span class="hljs-attr">slices:</span>
+                <pre><code><span class="hljs-comment"># Order flow of the online shop</span>
+<span class="hljs-attr">slices:</span>
+  <span class="hljs-comment"># The customer buys a product from its page.</span>
   <span class="hljs-attr">OrderPlacement:</span>
     - <span class="hljs-attr">t:</span> <span class="hljs-string">Customer/ProductPage</span>    <span class="hljs-comment"># User clicks "Buy Now"</span>
     - <span class="hljs-attr">c:</span> <span class="hljs-string">PlaceOrder</span>              <span class="hljs-comment"># Validates inventory</span>
