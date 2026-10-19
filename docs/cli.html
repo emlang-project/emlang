@@ -76,7 +76,7 @@
                         </tr>
                         <tr>
                             <td><code><a href="#fmt" style="color: var(--violet-6); text-decoration: none;">fmt</a></code></td>
-                            <td>Format a YAML source file</td>
+                            <td>Format YAML source files</td>
                         </tr>
                         <tr>
                             <td><code><a href="#diagram" style="color: var(--violet-6); text-decoration: none;">diagram</a></code></td>
@@ -281,7 +281,7 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
 
         <section id="fmt">
             <h2>emlang fmt</h2>
-            <p>Format a YAML source file to canonical output:</p>
+            <p>Format YAML source files to canonical output:</p>
             <ul class="plain">
                 <li>Element keys use one style: short (<code>e</code>) or long (<code>event</code>).</li>
                 <li>A slice without tests uses the direct form, a list of elements without a <code>steps</code> key.</li>
@@ -291,7 +291,7 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
             <p>Comments, quoting, prop values, and the order of slices, tests, elements and props are kept as written.</p>
 
             <h3>Usage</h3>
-            <pre><code>emlang fmt [flags] &lt;file&gt;</code></pre>
+            <pre><code>emlang fmt [flags] &lt;file&gt;...</code></pre>
 
             <h3>Arguments</h3>
             <div class="table-wrapper">
@@ -304,8 +304,8 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>&lt;file&gt;</code></td>
-                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                            <td><code>&lt;file&gt;...</code></td>
+                            <td>Paths to one or more YAML files, or <code>-</code> alone to read from stdin. Several files need <code>-w</code> or <code>--check</code>.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -327,7 +327,13 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
                             <td><code>-w, --write</code></td>
                             <td>bool</td>
                             <td><code>false</code></td>
-                            <td>Write result to source file instead of stdout (cannot be used with stdin)</td>
+                            <td>Write the result to each source file instead of stdout. A file already formatted is not rewritten. Cannot be used with stdin.</td>
+                        </tr>
+                        <tr>
+                            <td><code>--check</code></td>
+                            <td>bool</td>
+                            <td><code>false</code></td>
+                            <td>Print the name of each file that is not formatted, without changing it. The exit code is 1 if any file is not formatted. Cannot be used with <code>-w</code>.</td>
                         </tr>
                         <tr>
                             <td><code>--keys</code></td>
@@ -340,6 +346,7 @@ emlang -c custom-config.yaml lint model.yaml</code></pre>
             </div>
 
             <p>The <code>--keys</code> flag priority is: flag &gt; <a href="config.html#fmt" style="color: var(--violet-6);">config</a> &gt; default (<code>short</code>).</p>
+            <p>A file that cannot be read or parsed is reported, and the other files are still processed. The exit code is then 1.</p>
 
             <h3>Examples</h3>
             <div class="code-wrapper">
@@ -349,6 +356,12 @@ emlang fmt model.yaml
 
 <span class="hljs-comment"># Format in-place</span>
 emlang fmt -w model.yaml
+
+<span class="hljs-comment"># Format several files in-place</span>
+emlang fmt -w models/*.yaml
+
+<span class="hljs-comment"># Check that files are formatted, e.g. in CI</span>
+emlang fmt --check models/*.yaml
 
 <span class="hljs-comment"># Format with long keys</span>
 emlang fmt --keys long model.yaml

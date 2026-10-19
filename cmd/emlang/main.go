@@ -88,7 +88,8 @@ func printUsage() {
 	fmt.Println("Commands:")
 	fmt.Println("  parse <file>         Parse a YAML source file and show structure (use - for stdin)")
 	fmt.Println("  lint <file>...       Lint YAML source files for issues (use - for stdin)")
-	fmt.Println("  fmt <file>           Format a YAML source file (use - for stdin, -w for in-place)")
+	fmt.Println("  fmt <file>...        Format YAML source files (use - for stdin, -w for in-place,")
+	fmt.Println("                       --check to list unformatted files)")
 	fmt.Println("                       --keys short|long: override key style")
 	fmt.Println("  diagram <file>       Generate an HTML diagram (use - for stdin, -o file for output)")
 	fmt.Println("                       --serve [--address 127.0.0.1] [--port 8274]: live-reload server")
@@ -282,12 +283,16 @@ func printElement(indent string, elem *ast.Element) {
 	}
 }
 
+// cmdFmt formats one file to stdout, or several files in place (-w) or as
+// a check (--check). With several files, it keeps going after a file that
+// cannot be read, parsed or written, so that one run reports every file.
 func cmdFmt(args []string, cfg *config.Config) {
 	flags := pflag.NewFlagSet("fmt", pflag.ExitOnError)
-	writeFlag := flags.BoolP("write", "w", false, "write result to source file instead of stdout")
+	writeFlag := flags.BoolP("write", "w", false, "write result to source files instead of stdout")
+	checkFlag := flags.Bool("check", false, "list files that are not formatted, without changing them")
 	keysFlag := flags.String("keys", "", "key style: short or long")
 	flags.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: emlang fmt [-w] [--keys short|long] <file>")
+		fmt.Fprintln(os.Stderr, "Usage: emlang fmt [-w | --check] [--keys short|long] <file>...")
 		flags.PrintDefaults()
 	}
 	flags.Parse(args)
@@ -296,35 +301,73 @@ func cmdFmt(args []string, cfg *config.Config) {
 		flags.Usage()
 		os.Exit(1)
 	}
+	files := flags.Args()
 
-	inputArg := flags.Arg(0)
-
-	if *writeFlag && inputArg == "-" {
-		fmt.Fprintln(os.Stderr, "Error: -w cannot be used with stdin")
+	if *writeFlag && *checkFlag {
+		fmt.Fprintln(os.Stderr, "Error: -w and --check cannot be used together")
 		os.Exit(1)
 	}
-
-	doc, _ := parseFile(inputArg)
+	if !*writeFlag && !*checkFlag && len(files) > 1 {
+		fmt.Fprintln(os.Stderr, "Error: several files need -w or --check")
+		os.Exit(1)
+	}
+	for _, file := range files {
+		if *writeFlag && file == "-" {
+			fmt.Fprintln(os.Stderr, "Error: -w cannot be used with stdin")
+			os.Exit(1)
+		}
+		if file == "-" && len(files) > 1 {
+			fmt.Fprintln(os.Stderr, "Error: - (stdin) cannot be used with other files")
+			os.Exit(1)
+		}
+	}
 
 	// Priority: flag > config > formatter default
 	keyStyle := cfg.Fmt.Keys
 	if flags.Changed("keys") {
 		keyStyle = *keysFlag
 	}
+	opts := formatter.Options{KeyStyle: keyStyle}
 
-	out, err := formatter.Format(doc, formatter.Options{KeyStyle: keyStyle})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Format error in %s: %v\n", inputArg, err)
-		os.Exit(1)
+	failed := false
+	for _, file := range files {
+		doc, name, err := readDocument(file)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			failed = true
+			continue
+		}
+
+		out, err := formatter.Format(doc, opts)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Format error in %s: %v\n", name, err)
+			failed = true
+			continue
+		}
+
+		switch {
+		case *checkFlag:
+			if !bytes.Equal(out, doc.RawSource) {
+				fmt.Println(name)
+				failed = true
+			}
+		case *writeFlag:
+			// A file already formatted is not rewritten, so its
+			// modification time stays as it was.
+			if bytes.Equal(out, doc.RawSource) {
+				continue
+			}
+			if err := os.WriteFile(file, out, 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "Error writing %s: %v\n", file, err)
+				failed = true
+			}
+		default:
+			os.Stdout.Write(out)
+		}
 	}
 
-	if *writeFlag {
-		if err := os.WriteFile(inputArg, out, 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing %s: %v\n", inputArg, err)
-			os.Exit(1)
-		}
-	} else {
-		os.Stdout.Write(out)
+	if failed {
+		os.Exit(1)
 	}
 }
 
