@@ -2,6 +2,7 @@ package linter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/emlang-project/emlang/internal/ast"
 )
@@ -60,6 +61,7 @@ func (l *Linter) Lint(doc *ast.Document) []Issue {
 		for _, name := range sd.SliceOrder {
 			l.lintSlice(name, sd.Slices[name])
 		}
+		l.lintTestElements(sd)
 	}
 
 	return l.issues
@@ -129,4 +131,108 @@ func (l *Linter) isFollowedByEventOrException(elements []*ast.Element, index int
 		}
 	}
 	return false
+}
+
+// lintTestElements reports each test element that matches no step of any
+// slice of the document, which is most often a typo. Each YAML document is
+// checked on its own, as SPEC.md (Document Structure) makes them
+// independent. Exceptions in then are not checked: a failure case usually
+// has its exception in tests only, as in the examples of SPEC.md (Tests).
+func (l *Linter) lintTestElements(sd *ast.SubDoc) {
+	var steps []*ast.Element
+	for _, name := range sd.SliceOrder {
+		steps = append(steps, sd.Slices[name].Elements...)
+	}
+
+	for _, name := range sd.SliceOrder {
+		slice := sd.Slices[name]
+		for _, testName := range slice.TestOrder {
+			test := slice.Tests[testName]
+			var elems []*ast.Element
+			elems = append(elems, test.Given...)
+			elems = append(elems, test.When...)
+			elems = append(elems, test.Then...)
+			for _, elem := range elems {
+				if elem.Type == ast.ElementException || matchesStep(elem, steps) {
+					continue
+				}
+				message := fmt.Sprintf("%s %q is not a step of any slice", elem.Type, fullName(elem))
+				if suggestion := closestStep(elem, steps); suggestion != "" {
+					message += fmt.Sprintf(" (did you mean %q?)", suggestion)
+				}
+				l.addIssue("unknown-test-element", message, elem.Line, elem.Column, SeverityWarning)
+			}
+		}
+	}
+}
+
+// matchesStep reports whether a step has the type and name of elem. A test
+// element without a swimlane matches a step in any swimlane.
+func matchesStep(elem *ast.Element, steps []*ast.Element) bool {
+	for _, step := range steps {
+		if step.Type == elem.Type && step.Name == elem.Name &&
+			(elem.Swimlane == "" || step.Swimlane == elem.Swimlane) {
+			return true
+		}
+	}
+	return false
+}
+
+// closestStep returns the step of the same type whose name is closest to
+// the name of elem, or "" when no step is close enough to be a likely typo.
+// The comparison ignores case, so a difference in case only is suggested.
+func closestStep(elem *ast.Element, steps []*ast.Element) string {
+	target := strings.ToLower(comparedName(elem, elem))
+	maxDistance := max(1, len([]rune(target))/3)
+
+	best, bestDistance := "", maxDistance+1
+	for _, step := range steps {
+		if step.Type != elem.Type {
+			continue
+		}
+		d := distance(target, strings.ToLower(comparedName(elem, step)))
+		if d < bestDistance {
+			best, bestDistance = fullName(step), d
+		}
+	}
+	return best
+}
+
+// comparedName returns the name of e as compared with elem: with its
+// swimlane when elem has one, without it otherwise.
+func comparedName(elem, e *ast.Element) string {
+	if elem.Swimlane == "" {
+		return e.Name
+	}
+	return fullName(e)
+}
+
+// fullName returns the name of e as written in the source, swimlane first.
+func fullName(e *ast.Element) string {
+	if e.Swimlane == "" {
+		return e.Name
+	}
+	return e.Swimlane + "/" + e.Name
+}
+
+// distance returns the Levenshtein distance between a and b, in runes.
+func distance(a, b string) int {
+	ra, rb := []rune(a), []rune(b)
+	prev := make([]int, len(rb)+1)
+	cur := make([]int, len(rb)+1)
+	for j := range prev {
+		prev[j] = j
+	}
+	for i := 1; i <= len(ra); i++ {
+		cur[0] = i
+		for j := 1; j <= len(rb); j++ {
+			cost := 1
+			if ra[i-1] == rb[j-1] {
+				cost = 0
+			}
+			cur[j] = min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost)
+		}
+		prev, cur = cur, prev
+	}
+	return prev[len(rb)]
 }

@@ -537,3 +537,97 @@ slices:
 		}
 	}
 }
+
+func unknownTestElements(issues []Issue) []Issue {
+	var found []Issue
+	for _, issue := range issues {
+		if issue.Rule == "unknown-test-element" {
+			found = append(found, issue)
+		}
+	}
+	return found
+}
+
+func TestLintUnknownTestElement(t *testing.T) {
+	input := `
+slices:
+  Registration:
+    - c: Register user
+    - e: User/User registered
+  Login:
+    steps:
+      - c: Log in
+      - e: User/Logged in
+      - v: Dashboard
+    tests:
+      Known elements:
+        given:
+          - e: User registered
+          - e: User/User registered
+        when:
+          - c: Log in
+        then:
+          - v: Dashboard
+          - x: Bad password
+      Unknown elements:
+        given:
+          - e: User registred
+          - e: Admin/User registered
+          - v: Register user
+        when:
+          - c: Delete account
+        then:
+          - e: logged in
+`
+	doc := mustParse(t, input)
+	got := unknownTestElements(New().Lint(doc))
+
+	want := []string{
+		`event "User registred" is not a step of any slice (did you mean "User/User registered"?)`,
+		`event "Admin/User registered" is not a step of any slice (did you mean "User/User registered"?)`,
+		`view "Register user" is not a step of any slice`,
+		`command "Delete account" is not a step of any slice`,
+		`event "logged in" is not a step of any slice (did you mean "User/Logged in"?)`,
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d issues, want %d: %v", len(got), len(want), got)
+	}
+	for i, issue := range got {
+		if issue.Message != want[i] {
+			t.Errorf("issue %d: got %q, want %q", i, issue.Message, want[i])
+		}
+		if issue.Severity != SeverityWarning {
+			t.Errorf("issue %d: got severity %s, want warning", i, issue.Severity)
+		}
+	}
+	if got[0].Line != 23 || got[0].Column != 13 {
+		t.Errorf("got position %d:%d, want 23:13", got[0].Line, got[0].Column)
+	}
+}
+
+func TestLintUnknownTestElementPerDocument(t *testing.T) {
+	input := `
+slices:
+  Registration:
+    - c: Register user
+    - e: User registered
+---
+slices:
+  Login:
+    steps:
+      - c: Log in
+      - e: Logged in
+    tests:
+      Needs registration:
+        given:
+          - e: User registered
+        when:
+          - c: Log in
+`
+	doc := mustParse(t, input)
+	got := unknownTestElements(New().Lint(doc))
+
+	if len(got) != 1 || got[0].Message != `event "User registered" is not a step of any slice` {
+		t.Errorf("got %v, want one issue for \"User registered\"", got)
+	}
+}
