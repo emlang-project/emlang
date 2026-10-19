@@ -61,6 +61,7 @@ func (l *Linter) Lint(doc *ast.Document) []Issue {
 		for _, name := range sd.SliceOrder {
 			l.lintSlice(name, sd.Slices[name])
 		}
+		l.lintViews(sd)
 		l.lintTestElements(sd)
 	}
 
@@ -95,6 +96,14 @@ func (l *Linter) lintSlice(name string, slice *ast.Slice) {
 			hasEvent = true
 		}
 
+		if elem.Type == ast.ElementTrigger {
+			if !l.isFollowedByCommand(slice.Elements, i) {
+				l.addIssue("trigger-without-command",
+					"trigger should be followed by a command",
+					elem.Line, elem.Column, SeverityWarning)
+			}
+		}
+
 		if elem.Type == ast.ElementCommand {
 			hasCommandInSeq = true
 			if !l.isFollowedByEventOrException(slice.Elements, i) {
@@ -121,6 +130,20 @@ func (l *Linter) lintSlice(name string, slice *ast.Slice) {
 
 }
 
+// isFollowedByCommand reports whether a command comes after the trigger at
+// index, before the next trigger.
+func (l *Linter) isFollowedByCommand(elements []*ast.Element, index int) bool {
+	for i := index + 1; i < len(elements); i++ {
+		switch elements[i].Type {
+		case ast.ElementCommand:
+			return true
+		case ast.ElementTrigger:
+			return false
+		}
+	}
+	return false
+}
+
 func (l *Linter) isFollowedByEventOrException(elements []*ast.Element, index int) bool {
 	for i := index + 1; i < len(elements); i++ {
 		switch elements[i].Type {
@@ -131,6 +154,37 @@ func (l *Linter) isFollowedByEventOrException(elements []*ast.Element, index int
 		}
 	}
 	return false
+}
+
+// lintViews reports each view that no event feeds. A view is fed when, in
+// at least one slice of the document, an event comes before it. The check
+// spans the document because a slice often starts with a view that the
+// events of another slice feed.
+func (l *Linter) lintViews(sd *ast.SubDoc) {
+	fed := map[string]bool{}
+	for _, name := range sd.SliceOrder {
+		hasEvent := false
+		for _, elem := range sd.Slices[name].Elements {
+			switch elem.Type {
+			case ast.ElementEvent:
+				hasEvent = true
+			case ast.ElementView:
+				if hasEvent {
+					fed[elem.Name] = true
+				}
+			}
+		}
+	}
+
+	for _, name := range sd.SliceOrder {
+		for _, elem := range sd.Slices[name].Elements {
+			if elem.Type == ast.ElementView && !fed[elem.Name] {
+				l.addIssue("view-without-event",
+					fmt.Sprintf("view %q is not preceded by an event in any slice", elem.Name),
+					elem.Line, elem.Column, SeverityWarning)
+			}
+		}
+	}
 }
 
 // lintTestElements reports each test element that matches no step of any

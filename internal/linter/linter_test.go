@@ -631,3 +631,83 @@ slices:
 		t.Errorf("got %v, want one issue for \"User registered\"", got)
 	}
 }
+
+func issuesOf(issues []Issue, rule string) []Issue {
+	var found []Issue
+	for _, issue := range issues {
+		if issue.Rule == rule {
+			found = append(found, issue)
+		}
+	}
+	return found
+}
+
+func TestLintTriggerWithoutCommand(t *testing.T) {
+	input := `
+slices:
+  Checkout:
+    - t: Cart page
+    - v: Cart
+    - c: Check out
+    - e: Checked out
+  Browse:
+    - t: Home page
+    - t: Product page
+    - c: Add item
+    - e: Item added
+    - t: Footer link
+`
+	doc := mustParse(t, input)
+	got := issuesOf(New().Lint(doc), "trigger-without-command")
+
+	if len(got) != 2 {
+		t.Fatalf("got %d issues, want 2: %v", len(got), got)
+	}
+	if got[0].Line != 9 || got[1].Line != 13 {
+		t.Errorf("got lines %d and %d, want 9 and 13", got[0].Line, got[1].Line)
+	}
+	if got[0].Message != "trigger should be followed by a command" {
+		t.Errorf("got message %q", got[0].Message)
+	}
+}
+
+func TestLintViewWithoutEvent(t *testing.T) {
+	input := `
+slices:
+  Add item:
+    - c: Add item
+    - e: Item added
+    - v: Cart
+  Checkout:
+    - v: Cart
+    - t: Checkout button
+    - c: Check out
+    - e: Checked out
+  Help:
+    - v: Help page
+    - e: Help viewed
+    - v: Orders
+---
+slices:
+  Other document:
+    - v: Cart
+`
+	doc := mustParse(t, input)
+	got := issuesOf(New().Lint(doc), "view-without-event")
+
+	want := []string{
+		`view "Help page" is not preceded by an event in any slice`,
+		`view "Cart" is not preceded by an event in any slice`,
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d issues, want %d: %v", len(got), len(want), got)
+	}
+	for i, issue := range got {
+		if issue.Message != want[i] {
+			t.Errorf("issue %d: got %q, want %q", i, issue.Message, want[i])
+		}
+	}
+	if got[0].Line != 13 || got[1].Line != 19 {
+		t.Errorf("got lines %d and %d, want 13 and 19", got[0].Line, got[1].Line)
+	}
+}

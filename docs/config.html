@@ -83,9 +83,19 @@
                             <td>Slice without events</td>
                         </tr>
                         <tr>
+                            <td><code>trigger-without-command</code></td>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>Trigger not followed by a command before the next trigger</td>
+                        </tr>
+                        <tr>
                             <td><code>unknown-test-element</code></td>
                             <td><span class="severity-warning">warning</span></td>
                             <td>Test element that is not a step of any slice in the same document. Exceptions are not checked.</td>
+                        </tr>
+                        <tr>
+                            <td><code>view-without-event</code></td>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>View that no event comes before, in any slice of the same document</td>
                         </tr>
                     </tbody>
                 </table>
