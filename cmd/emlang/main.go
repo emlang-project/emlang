@@ -170,6 +170,13 @@ func parseFile(arg string) (*ast.Document, string) {
 	return doc, name
 }
 
+// inputError is a message for the user, printed as is. It is a full
+// sentence that starts with a capital letter, which the Go convention for
+// error strings forbids, hence its own type.
+type inputError string
+
+func (e inputError) Error() string { return string(e) }
+
 // readDocument reads and parses arg, a file path or "-" for stdin. It
 // returns the name to show in messages along with the document.
 func readDocument(arg string) (*ast.Document, string, error) {
@@ -179,14 +186,14 @@ func readDocument(arg string) (*ast.Document, string, error) {
 	if arg == "-" {
 		content, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			return nil, "<stdin>", fmt.Errorf("Error reading input: %v", err)
+			return nil, "<stdin>", inputError(fmt.Sprintf("Error reading input: %v", err))
 		}
 		input = bytes.NewReader(content)
 		name = "<stdin>"
 	} else {
 		f, err := os.Open(arg)
 		if err != nil {
-			return nil, arg, fmt.Errorf("Error reading input: %v", err)
+			return nil, arg, inputError(fmt.Sprintf("Error reading input: %v", err))
 		}
 		defer f.Close()
 		input = f
@@ -195,7 +202,7 @@ func readDocument(arg string) (*ast.Document, string, error) {
 
 	doc, err := parser.Parse(input)
 	if err != nil {
-		return nil, name, fmt.Errorf("Parse error in %s: %v", name, err)
+		return nil, name, inputError(fmt.Sprintf("Parse error in %s: %v", name, err))
 	}
 
 	return doc, name, nil
