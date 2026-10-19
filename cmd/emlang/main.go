@@ -105,6 +105,7 @@ lint:
   #   - command-without-event
   #   - orphan-exception
   #   - slice-missing-event
+  #   - unknown-test-element
 
 fmt:
   # keys: short
