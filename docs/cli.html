@@ -72,7 +72,7 @@
                         </tr>
                         <tr>
                             <td><code><a href="#lint" style="color: var(--violet-6); text-decoration: none;">lint</a></code></td>
-                            <td>Analyze a YAML file for issues and best practices</td>
+                            <td>Analyze YAML files for issues and best practices</td>
                         </tr>
                         <tr>
                             <td><code><a href="#fmt" style="color: var(--violet-6); text-decoration: none;">fmt</a></code></td>
@@ -185,10 +185,10 @@ cat model.yaml | emlang parse -</code></pre>
 
         <section id="lint">
             <h2>emlang lint</h2>
-            <p>Analyze a YAML file for issues and best practices. Returns a list of warnings and errors with file location.</p>
+            <p>Analyze YAML files for issues and best practices. Returns a list of warnings and errors with file location.</p>
 
             <h3>Usage</h3>
-            <pre><code>emlang lint &lt;file&gt;</code></pre>
+            <pre><code>emlang lint &lt;file&gt;...</code></pre>
 
             <h3>Arguments</h3>
             <div class="table-wrapper">
@@ -201,8 +201,8 @@ cat model.yaml | emlang parse -</code></pre>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>&lt;file&gt;</code></td>
-                            <td>Path to a YAML file, or <code>-</code> to read from stdin</td>
+                            <td><code>&lt;file&gt;...</code></td>
+                            <td>Paths to one or more YAML files. Use <code>-</code> once to read from stdin.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -212,10 +212,19 @@ cat model.yaml | emlang parse -</code></pre>
             <p>If no issues are found:</p>
             <pre><code>model.yaml: OK (no issues found)</code></pre>
             <p>If issues are found, they are reported with file location, severity, and rule name:</p>
-            <pre><code>model.yaml:25:5: warning: command should be followed by an event or exception [command-without-event]
+            <pre><code>model.yaml: 2 issue(s) found
+----------------------------------------
+model.yaml:25:5: warning: command should be followed by an event or exception [command-without-event]
 model.yaml:30:5: warning: exception without preceding command [orphan-exception]
-
-2 warnings</code></pre>
+----------------------------------------
+Summary: 0 error(s), 2 warning(s)</code></pre>
+            <p>With several files:</p>
+            <ul class="rules">
+                <li>Each file is linted on its own and gets its own report.</li>
+                <li>A file that cannot be read or parsed counts as one error. The other files are still linted.</li>
+                <li>A last line gives the totals: <code>Total: 3 file(s), 0 error(s), 2 warning(s)</code>.</li>
+                <li>The exit code is 1 if any file has an error.</li>
+            </ul>
             <p>Rules can be ignored via the <a href="config.html#lint" style="color: var(--violet-6);">lint configuration</a>.</p>
 
             <h3>Linting Rules</h3>
@@ -258,6 +267,9 @@ model.yaml:30:5: warning: exception without preceding command [orphan-exception]
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code><span class="hljs-comment"># Lint a file</span>
 emlang lint model.yaml
+
+<span class="hljs-comment"># Lint several files</span>
+emlang lint models/*.yaml
 
 <span class="hljs-comment"># Lint from stdin</span>
 cat model.yaml | emlang lint -

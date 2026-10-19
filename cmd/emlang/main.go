@@ -87,7 +87,7 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println("  parse <file>         Parse a YAML source file and show structure (use - for stdin)")
-	fmt.Println("  lint <file>          Lint a YAML source file for issues (use - for stdin)")
+	fmt.Println("  lint <file>...       Lint YAML source files for issues (use - for stdin)")
 	fmt.Println("  fmt <file>           Format a YAML source file (use - for stdin, -w for in-place)")
 	fmt.Println("                       --keys short|long: override key style")
 	fmt.Println("  diagram <file>       Generate an HTML diagram (use - for stdin, -o file for output)")
@@ -159,22 +159,31 @@ func cmdInit() {
 }
 
 func parseFile(arg string) (*ast.Document, string) {
+	doc, name, err := readDocument(arg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	return doc, name
+}
+
+// readDocument reads and parses arg, a file path or "-" for stdin. It
+// returns the name to show in messages along with the document.
+func readDocument(arg string) (*ast.Document, string, error) {
 	var input io.Reader
 	var name string
 
 	if arg == "-" {
 		content, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
-			os.Exit(1)
+			return nil, "<stdin>", fmt.Errorf("Error reading input: %v", err)
 		}
 		input = bytes.NewReader(content)
 		name = "<stdin>"
 	} else {
 		f, err := os.Open(arg)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
-			os.Exit(1)
+			return nil, arg, fmt.Errorf("Error reading input: %v", err)
 		}
 		defer f.Close()
 		input = f
@@ -183,11 +192,10 @@ func parseFile(arg string) (*ast.Document, string) {
 
 	doc, err := parser.Parse(input)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Parse error in %s: %v\n", name, err)
-		os.Exit(1)
+		return nil, name, fmt.Errorf("Parse error in %s: %v", name, err)
 	}
 
-	return doc, name
+	return doc, name, nil
 }
 
 func cmdParse(args []string) {
@@ -411,13 +419,49 @@ func warnRenamedCSSVariables(css map[string]string) {
 	}
 }
 
+// cmdLint lints each file on its own and keeps going after a file that
+// cannot be read or parsed, so that one run reports every file.
 func cmdLint(args []string, cfg *config.Config) {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: emlang lint <file>")
+		fmt.Fprintln(os.Stderr, "Usage: emlang lint <file>...")
 		os.Exit(1)
 	}
 
-	doc, name := parseFile(args[0])
+	stdinCount := 0
+	for _, arg := range args {
+		if arg == "-" {
+			stdinCount++
+		}
+	}
+	if stdinCount > 1 {
+		fmt.Fprintln(os.Stderr, "Error: - (stdin) can be given only once")
+		os.Exit(1)
+	}
+
+	totalErrors, totalWarnings := 0, 0
+	for _, arg := range args {
+		errors, warnings := lintFile(arg, cfg)
+		totalErrors += errors
+		totalWarnings += warnings
+	}
+
+	if len(args) > 1 {
+		fmt.Printf("Total: %d file(s), %d error(s), %d warning(s)\n", len(args), totalErrors, totalWarnings)
+	}
+
+	if totalErrors > 0 {
+		os.Exit(1)
+	}
+}
+
+// lintFile lints one file and prints its report. A file that cannot be
+// read or parsed counts as one error.
+func lintFile(arg string, cfg *config.Config) (errorCount, warningCount int) {
+	doc, name, err := readDocument(arg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1, 0
+	}
 
 	lint := linter.New()
 	for _, rule := range cfg.Lint.Ignore {
@@ -427,11 +471,9 @@ func cmdLint(args []string, cfg *config.Config) {
 
 	if len(issues) == 0 {
 		fmt.Printf("%s: OK (no issues found)\n", name)
-		return
+		return 0, 0
 	}
 
-	errorCount := 0
-	warningCount := 0
 	for _, issue := range issues {
 		if issue.Severity == linter.SeverityError {
 			errorCount++
@@ -455,7 +497,5 @@ func cmdLint(args []string, cfg *config.Config) {
 	fmt.Println("----------------------------------------")
 	fmt.Printf("Summary: %d error(s), %d warning(s)\n", errorCount, warningCount)
 
-	if errorCount > 0 {
-		os.Exit(1)
-	}
+	return errorCount, warningCount
 }
