@@ -449,6 +449,7 @@ cat model.yaml | emlang fmt -</code></pre>
             <h3>Output modes</h3>
             <p>By default, the generated HTML is printed to stdout. Use <code>-o</code> to write to a file instead, or <code>--serve</code> to start a live-reload development server.</p>
             <p>The <code>--serve</code> flag watches the input file for changes, regenerates the diagram automatically, and opens your browser. It cannot be combined with <code>-o</code> or stdin (<code>-</code>).</p>
+            <p>To show a minimap of the diagram in the served page, set <a href="config.html#diagram" style="color: var(--violet-6);"><code>diagram.serve.minimap</code></a> to <code>true</code>.</p>
             <p>Diagram appearance can be customized via the <a href="#config-diagram" style="color: var(--violet-6);">diagram configuration</a>.</p>
 
             <h3>Connectors</h3>

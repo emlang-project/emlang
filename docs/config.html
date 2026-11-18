@@ -133,6 +133,18 @@
     <span class="hljs-attr">address:</span> <span class="hljs-string">127.0.0.1</span>
     <span class="hljs-attr">port:</span> <span class="hljs-number">8274</span></code></pre>
 
+            <h3>diagram.serve.minimap</h3>
+            <p><strong>Type:</strong> <code>bool</code>. Default: <code>false</code>.</p>
+            <ul class="rules">
+                <li>When <code>true</code>, the page shows a minimap in its top right corner.</li>
+                <li>The minimap shows one box per element, in the element's color, and a frame around the visible part of the diagram.</li>
+                <li>Click or drag on the minimap to scroll the page.</li>
+                <li>The minimap is hidden while the whole diagram fits in the window.</li>
+            </ul>
+            <pre><code><span class="hljs-attr">diagram:</span>
+  <span class="hljs-attr">serve:</span>
+    <span class="hljs-attr">minimap:</span> <span class="hljs-literal">true</span></code></pre>
+
             <h3>diagram.css</h3>
             <p>Use the <code>css</code> map to override default CSS custom properties.</p>
             <p><strong>Type:</strong> <code>map of string to string</code> — CSS variable name to value.</p>
@@ -413,6 +425,7 @@
   <span class="hljs-attr">serve:</span>
     <span class="hljs-attr">address:</span> <span class="hljs-string">127.0.0.1</span>
     <span class="hljs-attr">port:</span> <span class="hljs-number">8274</span>
+    <span class="hljs-attr">minimap:</span> <span class="hljs-literal">true</span>
   <span class="hljs-attr">css:</span>
     <span class="hljs-comment"># Colors</span>
     <span class="hljs-attr">--diagram-bg-color:</span> <span class="hljs-string">"#ffffff"</span>

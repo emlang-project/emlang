@@ -117,6 +117,7 @@ diagram:
   # serve:
   #   address: 127.0.0.1
   #   port: 8274
+  #   minimap: false
 
   # css:
   #   --diagram-bg-color: "#ffffff"

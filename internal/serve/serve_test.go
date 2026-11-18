@@ -15,7 +15,7 @@ import (
 
 func TestWrapHTML(t *testing.T) {
 	fragment := []byte(`<style>.test{}</style><div>hello</div>`)
-	page := string(wrapHTML(fragment))
+	page := string(wrapHTML(fragment, false))
 
 	if !strings.HasPrefix(page, "<!DOCTYPE html>") {
 		t.Error("expected page to start with DOCTYPE")
@@ -31,6 +31,17 @@ func TestWrapHTML(t *testing.T) {
 	}
 	if !strings.Contains(page, "</body></html>") {
 		t.Error("expected page to end with closing tags")
+	}
+}
+
+func TestWrapHTMLMinimap(t *testing.T) {
+	fragment := []byte(`<div>hello</div>`)
+
+	if strings.Contains(string(wrapHTML(fragment, false)), "createElement(\"canvas\")") {
+		t.Error("expected no minimap script when minimap is off")
+	}
+	if !strings.Contains(string(wrapHTML(fragment, true)), "createElement(\"canvas\")") {
+		t.Error("expected minimap script when minimap is on")
 	}
 }
 

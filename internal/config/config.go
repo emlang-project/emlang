@@ -34,6 +34,7 @@ type DiagramConfig struct {
 type ServeConfig struct {
 	Address string `yaml:"address"`
 	Port    int    `yaml:"port"`
+	Minimap bool   `yaml:"minimap"` // show a minimap in the page (default false)
 }
 
 // Load resolves and loads the config file with priority: flagPath > EMLANG_CONFIG env > .emlang.yaml in cwd.

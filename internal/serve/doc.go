@@ -10,4 +10,12 @@
 // rendered again on every check, since an editor may still be writing it,
 // but each error is printed on stderr only once. Ctrl+C shuts the server
 // down.
+//
+// With diagram.serve.minimap, the page also shows a minimap in its top
+// right corner. A script draws one box per element in a canvas, with the
+// position the browser gave the element and its background color, so the
+// colors set in diagram.css show up too. The page holds the diagram only
+// once, so its ids and anchor names stay unique. The minimap is drawn
+// again on scroll, on resize (browser zoom included) and when the body
+// changes size. It is hidden while the whole diagram fits in the window.
 package serve

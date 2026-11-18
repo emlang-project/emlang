@@ -14,6 +14,8 @@ func TestParseFullConfig(t *testing.T) {
     - "command-without-event"
     - "orphan-exception"
 diagram:
+  serve:
+    minimap: true
   css:
     --trigger-bg-color: "#f0f0f0"
     --command-bg-color: "#ddeeff"
@@ -39,6 +41,9 @@ diagram:
 	if cfg.Diagram.CSS["--trigger-bg-color"] != "#f0f0f0" {
 		t.Errorf("unexpected --trigger-bg-color: %q", cfg.Diagram.CSS["--trigger-bg-color"])
 	}
+	if !cfg.Diagram.Serve.Minimap {
+		t.Error("expected diagram.serve.minimap to be true")
+	}
 }
 
 func TestParseMinimalConfig(t *testing.T) {
@@ -61,6 +66,9 @@ func TestParseMinimalConfig(t *testing.T) {
 	}
 	if len(cfg.Diagram.CSS) != 0 {
 		t.Errorf("expected no CSS overrides, got %d", len(cfg.Diagram.CSS))
+	}
+	if cfg.Diagram.Serve.Minimap {
+		t.Error("expected diagram.serve.minimap to default to false")
 	}
 }
 

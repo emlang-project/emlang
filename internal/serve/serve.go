@@ -30,11 +30,111 @@ const pollJS = `<script>
 })();
 </script>`
 
-// wrapHTML wraps an HTML fragment in a full HTML page with live-reload script.
-func wrapHTML(fragment []byte) []byte {
+// minimapJS draws the minimap enabled by diagram.serve.minimap. See the
+// package comment for how it works.
+const minimapJS = `<script>
+(function() {
+  var MAX = 240, MIN = 40;
+  var selector = ".emlang-trigger, .emlang-command, .emlang-view, .emlang-event, .emlang-exception";
+  var canvas = document.createElement("canvas");
+  canvas.style.cssText = "position: fixed; top: 8px; right: 8px; z-index: 1000;" +
+    "background: rgba(248, 249, 250, 0.9); border: 1px solid #adb5bd; border-radius: 4px;" +
+    "cursor: pointer; opacity: 0.6; transition: opacity 0.15s; touch-action: none;";
+  canvas.addEventListener("mouseenter", function() { canvas.style.opacity = "1"; });
+  canvas.addEventListener("mouseleave", function() { canvas.style.opacity = "0.6"; });
+  document.body.appendChild(canvas);
+
+  var sx = 1, sy = 1, pending = false;
+
+  function draw() {
+    pending = false;
+    var root = document.documentElement;
+    var docW = root.scrollWidth, docH = root.scrollHeight;
+    var viewW = root.clientWidth, viewH = root.clientHeight;
+    if (docW <= viewW && docH <= viewH) {
+      canvas.style.display = "none";
+      return;
+    }
+    canvas.style.display = "block";
+
+    var scale = Math.min(MAX / docW, MAX / docH);
+    var w = Math.max(MIN, Math.round(docW * scale));
+    var h = Math.max(MIN, Math.round(docH * scale));
+    sx = w / docW;
+    sy = h / docH;
+
+    var dpr = window.devicePixelRatio || 1;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var items = document.querySelectorAll(selector);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i].getBoundingClientRect();
+      ctx.fillStyle = getComputedStyle(items[i]).backgroundColor;
+      ctx.fillRect((r.left + window.scrollX) * sx, (r.top + window.scrollY) * sy,
+        Math.max(1, r.width * sx), Math.max(1, r.height * sy));
+    }
+
+    ctx.fillStyle = "rgba(73, 80, 87, 0.15)";
+    ctx.strokeStyle = "#495057";
+    ctx.lineWidth = 1;
+    var vx = window.scrollX * sx, vy = window.scrollY * sy;
+    ctx.fillRect(vx, vy, viewW * sx, viewH * sy);
+    ctx.strokeRect(vx + 0.5, vy + 0.5, Math.max(1, viewW * sx - 1), Math.max(1, viewH * sy - 1));
+  }
+
+  function schedule() {
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(draw);
+    }
+  }
+
+  // Scrolls the page so that the viewport is centered on the point under
+  // the pointer.
+  function scrollToPointer(e) {
+    var b = canvas.getBoundingClientRect();
+    var root = document.documentElement;
+    window.scrollTo((e.clientX - b.left) / sx - root.clientWidth / 2,
+      (e.clientY - b.top) / sy - root.clientHeight / 2);
+  }
+
+  var dragging = false;
+  canvas.addEventListener("pointerdown", function(e) {
+    dragging = true;
+    canvas.setPointerCapture(e.pointerId);
+    scrollToPointer(e);
+    e.preventDefault();
+  });
+  canvas.addEventListener("pointermove", function(e) {
+    if (dragging) scrollToPointer(e);
+  });
+  canvas.addEventListener("pointerup", function() { dragging = false; });
+  canvas.addEventListener("pointercancel", function() { dragging = false; });
+
+  window.addEventListener("scroll", schedule);
+  window.addEventListener("resize", schedule);
+  window.addEventListener("load", schedule);
+  if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+  schedule();
+})();
+</script>`
+
+// wrapHTML wraps an HTML fragment in a full HTML page with live-reload
+// script. It adds the minimap script when minimap is true.
+func wrapHTML(fragment []byte, minimap bool) []byte {
+	scripts := pollJS
+	if minimap {
+		scripts += "\n" + minimapJS
+	}
 	return []byte("<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>emlang diagram</title></head>\n<body>\n" +
 		string(fragment) +
-		pollJS + "\n</body></html>\n")
+		scripts + "\n</body></html>\n")
 }
 
 // hashBytes returns a hex-encoded SHA-256 hash of the given bytes.
@@ -127,7 +227,7 @@ func generate(filePath string, cfg *config.Config) ([]byte, error) {
 		return nil, fmt.Errorf("diagram generation error: %w", err)
 	}
 
-	return wrapHTML(fragment), nil
+	return wrapHTML(fragment, cfg.Diagram.Serve.Minimap), nil
 }
 
 // openBrowser tries to open the given URL in the default browser.
