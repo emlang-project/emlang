@@ -152,12 +152,53 @@ header button:hover { background: #5f3dc4; border-color: #5f3dc4; }
   text-align: center;
 }
 
-.preview-pane iframe {
-  width: 100%;
+.preview-header .preview-option {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: #495057;
+  cursor: pointer;
+  user-select: none;
+}
+
+.preview-header .preview-option input {
+  accent-color: #7048e8;
+  cursor: pointer;
+}
+
+.preview-body {
   flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.preview-body iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   border: none;
   display: block;
 }
+
+.minimap {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: none;
+  background: rgba(248, 249, 250, 0.9);
+  border: 1px solid #adb5bd;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  touch-action: none;
+}
+
+.minimap:hover { opacity: 1; }
 
 .console {
   flex-shrink: 0;
@@ -270,8 +311,12 @@ header button:hover { background: #5f3dc4; border-color: #5f3dc4; }
       <span id="zoom-level">100%</span>
       <button id="btn-zoom-in" title="Zoom in">+</button>
       <button id="btn-zoom-reset" title="Reset zoom">Reset</button>
+      <label class="preview-option"><input type="checkbox" id="chk-minimap"> Minimap</label>
     </div>
-    <iframe id="preview" sandbox="allow-same-origin"></iframe>
+    <div class="preview-body">
+      <iframe id="preview" sandbox="allow-same-origin"></iframe>
+      <canvas class="minimap" id="minimap"></canvas>
+    </div>
   </div>
 </div>
 
@@ -360,8 +405,11 @@ var zoomLevel = document.getElementById("zoom-level");
 var btnZoomIn = document.getElementById("btn-zoom-in");
 var btnZoomOut = document.getElementById("btn-zoom-out");
 var btnZoomReset = document.getElementById("btn-zoom-reset");
+var chkMinimap = document.getElementById("chk-minimap");
+var minimap = document.getElementById("minimap");
 var debounceTimer = null;
 var zoom = 100;
+var savedScroll = { x: 0, y: 0 };
 var backend = null;
 
 function clearConsole() {
@@ -401,7 +449,7 @@ function handleRenderResult(data) {
     return;
   }
 
-  preview.srcdoc = data.html;
+  setPreview(data.html);
 
   var errors = 0;
   var warnings = 0;
@@ -422,11 +470,22 @@ function handleRenderResult(data) {
   updateBadge(errors, warnings);
 }
 
+// Writing srcdoc loads a new document, scrolled to the top left. The
+// scroll position is saved here and restored on load, so the preview
+// stays on the same part of the diagram while the user types.
+function setPreview(html) {
+  try {
+    var w = preview.contentWindow;
+    savedScroll = { x: w.scrollX, y: w.scrollY };
+  } catch(e) {}
+  preview.srcdoc = html;
+}
+
 function render() {
   if (!backend) return;
   var src = cm.getValue();
   if (!src.trim()) {
-    preview.srcdoc = "";
+    setPreview("");
     clearConsole();
     return;
   }
@@ -471,6 +530,7 @@ function applyZoom() {
       doc.body.style.width = (10000 / zoom) + "%";
     }
   } catch(e) {}
+  scheduleMinimap();
 }
 
 function setZoom(v) {
@@ -481,7 +541,112 @@ function setZoom(v) {
 btnZoomIn.addEventListener("click", function() { setZoom(zoom + 10); });
 btnZoomOut.addEventListener("click", function() { setZoom(zoom - 10); });
 btnZoomReset.addEventListener("click", function() { setZoom(100); });
-preview.addEventListener("load", applyZoom);
+
+// The minimap is drawn by this page, not inside the preview: the preview
+// is sandboxed without allow-scripts, and allow-same-origin lets this page
+// read its document. It draws one box per element, with the position the
+// browser gave the element (zoom included) and its background color.
+var MINIMAP_MAX = 240, MINIMAP_MIN = 40;
+var minimapSelector = ".emlang-trigger, .emlang-command, .emlang-view, .emlang-event, .emlang-exception";
+var minimapSx = 1, minimapSy = 1, minimapPending = false, minimapDragging = false;
+
+function drawMinimap() {
+  minimapPending = false;
+  var win, doc;
+  try {
+    win = preview.contentWindow;
+    doc = preview.contentDocument;
+  } catch(e) {}
+  if (!chkMinimap.checked || !doc || !doc.documentElement) {
+    minimap.style.display = "none";
+    return;
+  }
+  var root = doc.documentElement;
+  var docW = root.scrollWidth, docH = root.scrollHeight;
+  var viewW = root.clientWidth, viewH = root.clientHeight;
+  if (docW <= viewW && docH <= viewH) {
+    minimap.style.display = "none";
+    return;
+  }
+  minimap.style.display = "block";
+  // Keeps the minimap clear of the preview's vertical scrollbar.
+  minimap.style.right = (8 + win.innerWidth - viewW) + "px";
+
+  var scale = Math.min(MINIMAP_MAX / docW, MINIMAP_MAX / docH);
+  var w = Math.max(MINIMAP_MIN, Math.round(docW * scale));
+  var h = Math.max(MINIMAP_MIN, Math.round(docH * scale));
+  minimapSx = w / docW;
+  minimapSy = h / docH;
+
+  var dpr = window.devicePixelRatio || 1;
+  minimap.style.width = w + "px";
+  minimap.style.height = h + "px";
+  minimap.width = Math.round(w * dpr);
+  minimap.height = Math.round(h * dpr);
+  var ctx = minimap.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  var items = doc.querySelectorAll(minimapSelector);
+  for (var i = 0; i < items.length; i++) {
+    var r = items[i].getBoundingClientRect();
+    ctx.fillStyle = win.getComputedStyle(items[i]).backgroundColor;
+    ctx.fillRect((r.left + win.scrollX) * minimapSx, (r.top + win.scrollY) * minimapSy,
+      Math.max(1, r.width * minimapSx), Math.max(1, r.height * minimapSy));
+  }
+
+  ctx.fillStyle = "rgba(73, 80, 87, 0.15)";
+  ctx.strokeStyle = "#495057";
+  ctx.lineWidth = 1;
+  var vx = win.scrollX * minimapSx, vy = win.scrollY * minimapSy;
+  ctx.fillRect(vx, vy, viewW * minimapSx, viewH * minimapSy);
+  ctx.strokeRect(vx + 0.5, vy + 0.5, Math.max(1, viewW * minimapSx - 1), Math.max(1, viewH * minimapSy - 1));
+}
+
+function scheduleMinimap() {
+  if (!minimapPending) {
+    minimapPending = true;
+    requestAnimationFrame(drawMinimap);
+  }
+}
+
+// Scrolls the preview so that it is centered on the point under the
+// pointer.
+function scrollToPointer(e) {
+  var b = minimap.getBoundingClientRect();
+  var root = preview.contentDocument.documentElement;
+  preview.contentWindow.scrollTo((e.clientX - b.left) / minimapSx - root.clientWidth / 2,
+    (e.clientY - b.top) / minimapSy - root.clientHeight / 2);
+}
+
+minimap.addEventListener("pointerdown", function(e) {
+  minimapDragging = true;
+  minimap.setPointerCapture(e.pointerId);
+  scrollToPointer(e);
+  e.preventDefault();
+});
+minimap.addEventListener("pointermove", function(e) {
+  if (minimapDragging) scrollToPointer(e);
+});
+minimap.addEventListener("pointerup", function() { minimapDragging = false; });
+minimap.addEventListener("pointercancel", function() { minimapDragging = false; });
+
+chkMinimap.checked = localStorage.getItem("emlang-repl-minimap") === "true";
+chkMinimap.addEventListener("change", function() {
+  localStorage.setItem("emlang-repl-minimap", chkMinimap.checked ? "true" : "false");
+  scheduleMinimap();
+});
+
+// Each load brings a new window: the listeners are added again. Resizing
+// the panes resizes the preview window, which fires its resize event.
+preview.addEventListener("load", function() {
+  applyZoom();
+  var w = preview.contentWindow;
+  w.scrollTo(savedScroll.x, savedScroll.y);
+  w.addEventListener("scroll", scheduleMinimap);
+  w.addEventListener("resize", scheduleMinimap);
+  scheduleMinimap();
+});
 
 var resizeHandle = document.getElementById("resize-handle");
 var editorPane = document.querySelector(".editor-pane");
